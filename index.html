@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#1b120c">
 <title>Французский 🇫🇷</title>
 <style>
   @keyframes fadeUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
   @keyframes pop{0%{transform:scale(.92); opacity:0;} 100%{transform:scale(1); opacity:1;}}
-  @keyframes glow{0%,100%{box-shadow:0 0 18px rgba(232,133,61,.35);} 50%{box-shadow:0 0 30px rgba(224,90,61,.55);}}
+  @keyframes confettiFall{0%{transform:translateY(-10vh) rotate(0);} 100%{transform:translateY(110vh) rotate(720deg);}}
+  @keyframes pulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.05);}}
   :root{
-    --bg:#1b120c; --bgsoft:#2a1d13; --card:#2c1f16; --card2:#3b2a1d;
+    --bg:#1b120c; --card:#2c1f16; --card2:#3b2a1d;
     --txt:#faf3e7; --sub:#d9b98c; --accent:#e8853d; --accent2:#f2b04c;
-    --green:#82b356; --red:#e55b53; --amber:#f2b04c;
+    --green:#7fb257; --red:#e55b53; --gold:#f2b04c;
     --radius:20px;
     --grad:linear-gradient(135deg,#e8853d,#e05a3d);
   }
@@ -20,213 +21,278 @@
   html,body{margin:0; padding:0;}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:radial-gradient(120% 80% at 20% 0%,#33220f 0%,var(--bg) 55%),var(--bg);
+    background:radial-gradient(120% 80% at 20% 0%,#33220f 0%,var(--bg) 60%),var(--bg);
     color:var(--txt); min-height:100vh; overflow-x:hidden;
-    padding-bottom:calc(60px + env(safe-area-inset-bottom));
   }
-  .banner-wrap{
-    position:relative; margin:0; padding:0; height:118px; overflow:hidden;
+  .app{max-width:560px; margin:0 auto; min-height:100vh;}
+  .hero{
     background:linear-gradient(115deg,#3a2412 0%,#6b3417 45%,#a34a1f 100%);
+    position:relative; overflow:hidden; padding:calc(18px + env(safe-area-inset-top)) 18px 34px;
   }
-  .banner-wrap::before{content:'🇫🇷'; position:absolute; right:8%; top:50%; transform:translateY(-50%); font-size:64px; filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));}
-  .banner-wrap::after{
-    content:''; position:absolute; inset:0;
-    background:
-      radial-gradient(120% 120% at 85% 40%, rgba(255,205,130,.22) 0%, transparent 55%),
-      linear-gradient(90deg, rgba(27,18,12,.0) 0%, rgba(27,18,12,.35) 100%);
-  }
-  .banner-wrap .ovl{position:absolute; inset:0; background:linear-gradient(90deg,transparent 30%,rgba(20,12,6,.35) 100%);}
-  header{
-    position:relative; z-index:10; background:var(--bg);
-    padding:13px 16px 10px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  header h1{font-size:19px; margin:0; font-weight:800; letter-spacing:.3px; color:var(--txt);}
-  header .streak{
-    font-size:14px; color:var(--accent2); font-weight:700;
-    background:rgba(242,176,76,.14); padding:6px 12px; border-radius:999px;
-  }
-  main{padding:16px;}
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  .mbtn{
-    position:relative; background:var(--card); border:1px solid rgba(255,255,255,.06);
-    color:var(--txt); text-align:left; border-radius:var(--radius); padding:20px 18px;
-    font-size:16px; font-weight:700; cursor:pointer;
-    display:flex; flex-direction:column; gap:7px; overflow:hidden;
-    box-shadow:0 4px 18px rgba(0,0,0,.3);
-    transition:transform .15s, box-shadow .2s;
-    animation:fadeUp .35s ease both;
-  }
-  .mbtn:hover{transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.4);}
-  .mbtn:active{transform:scale(.96);}
-  .mbtn .emoji{font-size:30px; line-height:1;}
-  .mbtn .desc{font-size:12px; color:var(--sub); font-weight:500;}
-  .mbtn::after{
-    content:''; position:absolute; top:0; right:0; width:90px; height:90px; border-radius:50%;
-    background:var(--grad); opacity:.18; filter:blur(18px); transform:translate(20%,-30%);
-  }
-  .card{
-    background:var(--card); border:1px solid rgba(255,255,255,.06);
-    border-radius:var(--radius); padding:22px 18px;
-    margin-bottom:14px; box-shadow:0 4px 18px rgba(0,0,0,.28);
-    animation:fadeUp .3s ease both;
-  }
-  .card h2{margin:0 0 14px; font-size:18px; font-weight:800;}
+  .hero::before{content:'🇫🇷'; position:absolute; right:6%; top:40%; transform:translateY(-40%); font-size:72px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));}
+  .hero .top{display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
+  .hero .xp{font-weight:800; font-size:16px; background:rgba(0,0,0,.25); padding:6px 14px; border-radius:999px;}
+  .hero .streak{font-weight:800; font-size:15px; background:rgba(0,0,0,.25); padding:6px 14px; border-radius:999px; color:var(--accent2);}
+  .hero h1{margin:14px 0 2px; font-size:26px; font-weight:900; letter-spacing:.5px; position:relative; z-index:2;}
+  .hero .goal{font-size:13px; color:rgba(255,255,255,.85); position:relative; z-index:2;}
+  .goalline{height:6px; background:rgba(0,0,0,.28); border-radius:999px; overflow:hidden; margin-top:8px; position:relative; z-index:2;}
+  .goalfill{height:100%; background:var(--gold); border-radius:999px; transition:width .4s;}
+  main{padding:16px 16px 40px;}
+  .unit{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:16px; margin-bottom:18px; box-shadow:0 4px 18px rgba(0,0,0,.3);}
+  .unit h2{margin:0 0 4px; font-size:17px; font-weight:800;}
+  .unit .utitle{color:var(--sub); font-size:12px; margin-bottom:12px; font-weight:600; letter-spacing:.5px;}
+  .lesson{display:flex; align-items:center; gap:14px; padding:12px 10px; border-radius:14px; margin-bottom:8px; cursor:pointer; transition:background .15s;}
+  .lesson:active{transform:scale(.98);}
+  .lesson:last-child{margin-bottom:0;}
+  .lesson .icon{width:46px; height:46px; min-width:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px;}
+  .lesson.locked{opacity:.55; cursor:not-allowed;}
+  .lesson.locked .icon{background:var(--card2);}
+  .lesson.passed .icon{background:rgba(127,178,87,.2);}
+  .lesson.open .icon{background:var(--grad); color:#fff; animation:pulse 2s infinite;}
+  .lesson .info{flex:1;}
+  .lesson .info .nm{font-weight:800; font-size:15px;}
+  .lesson .info .dx{font-size:12px; color:var(--sub); display:block; margin-top:2px;}
+  .lesson .stars{color:var(--gold); font-size:13px; letter-spacing:2px;}
+  .topbar{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+  .topbar .back{background:var(--card2); border:none; color:var(--txt); border-radius:12px; padding:9px 14px; font-weight:700; cursor:pointer; font-size:14px;}
+  .topbar h2{flex:1; margin:0; font-size:19px; font-weight:800; text-align:center;}
+  .qprogress{height:8px; background:var(--card2); border-radius:999px; overflow:hidden; margin:0 0 20px;}
+  .qfill{height:100%; background:var(--grad); border-radius:999px; transition:width .3s;}
+  .qcard{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:24px 18px; margin-bottom:16px; animation:pop .25s ease both;}
+  .qprompt{font-size:13px; color:var(--sub); margin-bottom:4px; font-weight:600;}
+  .qtext{font-size:26px; font-weight:800; line-height:1.35;}
+  .qhint{color:var(--accent2); font-size:15px; margin-top:6px;}
+  .opts{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .opt{background:var(--card2); border:2px solid transparent; color:var(--txt); border-radius:14px; padding:16px 12px; font-size:15px; font-weight:600; cursor:pointer; transition:background .15s, transform .1s; min-height:54px;}
+  .opt:active{transform:scale(.97);}
+  .opt.sel{border-color:var(--accent); background:#3d2c1c;}
+  .opt.correct{background:rgba(127,178,87,.25); border-color:var(--green);}
+  .opt.wrong{background:rgba(229,91,83,.25); border-color:var(--red);}
+  .infosep{height:1px; background:rgba(255,255,255,.06); margin:20px 0;}
+  input.fillin{width:100%; background:var(--card2); border:2px solid rgba(255,255,255,.1); color:var(--txt); border-radius:14px; padding:16px 14px; font-size:18px; font-weight:700; outline:none; text-align:center;}
+  input.fillin:focus{border-color:var(--accent);}
+  .gap-word{display:inline-block; background:rgba(232,133,61,.15); border-radius:8px; padding:2px 8px; font-weight:800;}
+  .match-tile{display:flex; flex-direction:column; gap:10px;}
+  .mtile{display:flex; align-items:center; justify-content:space-between; background:var(--card2); border-radius:14px; padding:16px 14px; font-weight:700; cursor:pointer; transition:background .15s;}
+  .mtile:active{transform:scale(.98);}
+  .mtile.sel{background:#3d2c1c; border:2px solid var(--accent);}
+  .mtile .ch{opacity:.0;}
+  .mtile.matched{opacity:.4; pointer-events:none;}
+  .btn-actions{display:flex; gap:10px; margin-top:20px;}
+  .btn-actions button{flex:1; border:none; border-radius:15px; padding:16px; font-size:16px; font-weight:800; cursor:pointer;}
+  .btn-check{background:var(--grad); color:#fff; box-shadow:0 6px 20px rgba(232,133,61,.35);}
+  .btn-next{background:var(--green); color:#16220b;}
+  .btn-skip{background:var(--card2); color:var(--sub);}
+  .btn[disabled]{opacity:.4; pointer-events:none;}
+  .feedback{text-align:center; font-size:15px; font-weight:800; min-height:22px; margin-top:12px;}
+  .fb-correct{color:var(--green);}
+  .fb-wrong{color:var(--red);}
+  .card{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:20px 18px; margin-bottom:14px;}
+  .card h2{margin:0 0 12px; font-size:18px; font-weight:800;}
   .center{text-align:center;}
   .big{font-size:32px; font-weight:800; margin:10px 0;}
   .sub{color:var(--sub); font-size:13px;}
-  .translit{color:#f0a85a; font-size:16px;}
-  button.primary, a.primary{
-    background:var(--grad); color:#fff; border:none; border-radius:15px;
-    padding:16px; font-size:16px; font-weight:700; cursor:pointer; width:100%;
-    display:block; text-align:center; text-decoration:none;
-    box-shadow:0 6px 20px rgba(232,133,61,.35);
-    transition:transform .15s, box-shadow .2s;
-  }
-  button.primary:hover{box-shadow:0 8px 26px rgba(232,133,61,.5);}
-  button.primary:active{transform:scale(.97);}
-  button.secondary{
-    background:var(--card2); color:var(--txt); border:none; border-radius:13px;
-    padding:13px; font-size:14px; font-weight:600; cursor:pointer;
-  }
-  .row{display:flex; gap:10px; margin-top:14px;}
-  .row > *{flex:1;}
-  .badge{
-    display:inline-block; background:rgba(242,176,76,.16); border-radius:999px;
-    padding:5px 12px; font-size:12px; color:#f0a85a; font-weight:600;
-  }
-  .wordlist .w{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:13px 4px; border-bottom:1px solid rgba(255,255,255,.06);
-  }
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .mbtn{background:var(--card); border:1px solid rgba(255,255,255,.06); color:var(--txt); text-align:left; border-radius:var(--radius); padding:18px; font-size:15px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 18px rgba(0,0,0,.3);}
+  .mbtn:active{transform:scale(.97);}
+  .mbtn .emoji{font-size:28px;}
+  .mbtn .desc{font-size:12px; color:var(--sub); font-weight:500;}
+  .wordlist .w{display:flex; justify-content:space-between; align-items:center; padding:12px 4px; border-bottom:1px solid rgba(255,255,255,.06);}
   .wordlist .w:last-child{border-bottom:none;}
   .wordlist .fr{font-weight:700;}
   .wordlist .ru{color:var(--sub); font-size:13px;}
-  .wordlist .b{
-    color:#f0a85a; font-size:12px; background:rgba(242,176,76,.12);
-    padding:3px 9px; border-radius:999px; font-weight:600;
-  }
-  .stat{display:flex; justify-content:space-between; padding:11px 4px; border-bottom:1px solid rgba(255,255,255,.06); font-size:15px;}
+  .stat{display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:15px;}
   .stat:last-child{border-bottom:none;}
   .stat b{color:var(--accent2);}
-  input[type=text]{
-    width:100%; background:var(--card2); border:1px solid rgba(255,255,255,.08);
-    color:var(--txt); border-radius:13px; padding:14px; font-size:15px; margin-bottom:10px;
-    outline:none; transition:border .2s;
-  }
+  input[type=text]{width:100%; background:var(--card2); border:1px solid rgba(255,255,255,.08); color:var(--txt); border-radius:13px; padding:14px; font-size:15px; margin-bottom:10px; outline:none;}
   input[type=text]:focus{border-color:var(--accent);}
   .banner{background:var(--red); color:#fff; padding:12px; border-radius:12px; margin-bottom:14px; font-size:14px;}
   .ok{background:var(--green); color:#16220b; padding:12px; border-radius:12px; margin:12px 0; font-weight:700; text-align:center;}
-  .box-line{height:9px; background:var(--card2); border-radius:999px; overflow:hidden; margin:12px 0;}
-  .box-fill{height:100%; background:var(--grad); border-radius:999px; transition:width .4s;}
-  .feedback{font-size:15px; font-weight:700; min-height:22px;}
-  .green-btn{
-    flex:1; background:var(--grad); color:#fff; border:none; padding:13px 12px;
-    border-radius:13px; font-weight:700; font-size:14px;
-  }
-  .hero-title{
-    font-size:20px; font-weight:800; margin:6px 0 2px;
-    background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
-  }
+  /* Завершение урока */
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:fadeUp .25s ease both;}
+  .complete{width:100%; max-width:560px; background:var(--card); border-radius:24px 24px 0 0; padding:28px 22px calc(30px + env(safe-area-inset-bottom)); text-align:center; animation:pop .3s ease both; position:relative;}
+  .confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:99; overflow:hidden;}
+  .confetti span{position:absolute; top:-20px; width:10px; height:16px; opacity:.9; animation:confettiFall linear forwards;}
+  .complete .big{font-size:40px;}
+  .complete h2{font-size:26px; margin:8px 0;}
+  .complete .xpget{font-size:18px; font-weight:800; color:var(--gold); margin:12px 0 20px;}
+  .complete p{color:var(--sub); font-size:14px;}
+  .btn-done{background:var(--grad); color:#fff; border:none; border-radius:15px; padding:16px; font-size:16px; font-weight:800; width:100%; cursor:pointer; box-shadow:0 6px 20px rgba(232,133,61,.35);}
 </style>
 </head>
 <body>
-<div class="banner-wrap">
-  <div class="ovl"></div>
-</div>
-<header>
-  <h1>🇫🇷 Французский</h1>
-  <span class="streak">🔥 <span id="streakNum">0</span></span>
-</header>
-
+<div class="app">
 <main id="app"></main>
+</div>
+<div id="overlayRoot"></div>
 
 <script>
-// ===== Telegram Mini App API =====
 const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  try { tg.setHeaderColor('#0f172a'); tg.setBackgroundColor('#0f172a'); } catch(e){}
-}
+if (tg){ tg.ready(); tg.expand(); try{ tg.setHeaderColor('#1b120c'); tg.setBackgroundColor('#1b120c'); }catch(e){} }
 
-// ===== Сохранение данных (localStorage) =====
-const LS_KEY = 'french_app_v1';
+const LS_KEY = 'french_app_v2';
 function loadData(){
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e){}
-  return { words: null, learned: 0, done: 0, streak: 1, lastDay: null };
+  try{ const raw = localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return { xp:0, done:0, streak:1, lastDay:null, completed:{}, stars:{} };
 }
 const DATA = loadData();
-function save(){
-  try { localStorage.setItem(LS_KEY, JSON.stringify(DATA)); } catch(e){}
-  updateStreak();
-}
-
-// ===== Встроенный словарь =====
-const BASE = [
-  ["bonjour","здравствуйте, добрый день","бонжур"], ["au revoir","до свидания","о ревуар"],
-  ["merci","спасибо","мерси"], ["s'il vous plaît","пожалуйста","силь ву пле"],
-  ["oui","да","уи"], ["non","нет","нон"],
-  ["parler","говорить","парле"], ["manger","есть, кушать","манже"],
-  ["boire","пить","буар"], ["dormir","спать","дормир"],
-  ["aimer","любить","эме"], ["apprendre","учить, узнавать","апрандр"],
-  ["travailler","работать","травае"], ["être","быть","этр"],
-  ["avoir","иметь","авуар"], ["aller","идти, ехать","але"],
-  ["faire","делать","фэр"], ["voir","видеть","вуар"],
-  ["écouter","слушать","экуте"], ["regarder","смотреть","регарде"],
-  ["livre","книга","ливр"], ["maison","дом","мезон"],
-  ["ville","город","виль"], ["ami","друг","ами"],
-  ["famille","семья","фамий"], ["jour","день","жур"],
-  ["nuit","ночь","нюи"], ["temps","время / погода","тан"],
-  ["eau","вода","о"], ["pain","хлеб","пэн"],
-  ["fromage","сыр","фромаж"], ["café","кофе / кафе","кафе"],
-  ["vin","вино","вэн"], ["école","школа","эколь"],
-  ["mer","море","мэр"], ["soleil","солнце","солей"],
-  ["chien","собака","шьен"], ["chat","кот","ша"],
-  ["bon","хороший","бон"], ["grand","большой","гран"],
-  ["petit","маленький","пти"], ["je","я","жё"],
-  ["tu","ты","тю"], ["il","он","иль"],
-  ["elle","она","эль"], ["nous","мы","ну"],
-  ["vous","вы","ву"], ["et","и","э"],
-  ["mais","но","мэ"], ["avec","с (с кем-то)","авэк"],
-  ["dans","в (внутри)","дан"], ["pour","для, чтобы","пур"],
-  ["très","очень","трэ"], ["beaucoup","много","боку"],
-  ["comment","как","коман"], ["pourquoi","почему","пуркуа"]
-];
-function getWords(){
-  if (!DATA.words){
-    DATA.words = BASE.map((w,i)=>({id:'b'+i, fr:w[0], ru:w[1], translit:w[2], box:0}));
-    save();
-  }
-  return DATA.words;
-}
-function addUserWords(){ return DATA.words.filter(w=>!w.id.startsWith('b')); }
-
-// ===== Прогресс / серия =====
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DATA)); }catch(e){} updateHeader(); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 function updateStreak(){
-  const today = todayStr();
-  if (DATA.lastDay && DATA.lastDay !== today){
-    const prev = new Date(DATA.lastDay);
-    const diff = (new Date(today) - prev)/86400000;
-    if (diff === 1) DATA.streak++;
-    else DATA.streak = 1;
-    DATA.lastDay = today; save();
-  } else if (!DATA.lastDay){
-    DATA.lastDay = today; save();
-  }
-  const el = document.getElementById('streakNum');
-  if (el) el.textContent = DATA.streak;
+  const t = todayStr();
+  if(DATA.lastDay && DATA.lastDay !== t){
+    const prev = new Date(DATA.lastDay); const diff = (new Date(t)-prev)/86400000;
+    if(diff===1) DATA.streak++; else DATA.streak=1;
+    DATA.lastDay=t; save();
+  } else if(!DATA.lastDay){ DATA.lastDay=t; save(); }
 }
 
-// ===== Вспомогательные =====
-const app = document.getElementById('app');
-function render(html){ app.innerHTML = html; window.scrollTo(0,0); }
-function head(){ return `<h2></h2>`; }
-function backBtn(){ return `</div><div class="row"><button class="secondary" onclick="renderMenu()">← Меню</button></div>`; }
+// ===== Контент: юниты и уроки =====
+// Задание: {t:'choice'|'type'|'match'|'gap', ...}
+const UNITS = [
+  { id:'u1', title:'Приветствия и знакомство', color:'#e05a3d',
+    lessons:[
+      { id:'l1', name:'Первые слова', icon:'👋', xp:10, q:[
+        {t:'choice', p:'Как будет «привет»?', q:'«привет» по-французски', a:'bonjour', o:['bonjour','merci','au revoir','oui']},
+        {t:'type', p:'Переведи', q:'Привет', a:'bonjour'},
+        {t:'type', p:'Переведи', q:'Спасибо', a:'merci'},
+        {t:'choice', p:'Что означает «au revoir»?', a:'до свидания', o:['до свидания','спасибо','пожалуйста','здравствуйте']},
+        {t:'choice', p:'Как сказать «да»?', a:'oui', o:['oui','non','merci','bonjour']},
+        {t:'type', p:'Напиши «пожалуйста» по-французски', a:"s'il vous plaît", aliases:["sil vous plait","s'il vous plait"]},
+        {t:'gap', p:'Продолжи фразу: «Учиться» = …', text:'Je veux apprendre le ___.', word:'français', hint:'язык Франции'},
+        {t:'match', p:'Соедини пары', pairs:[['bonjour','привет'],['merci','спасибо'],['oui','да'],['non','нет']]}
+      ]},
+      { id:'l2', name:'Знакомство', icon:'🤝', xp:10, q:[
+        {t:'choice', p:'Как спросить «Как тебя зовут?»', a:'Comment tu t\'appelles ?', o:["Comment tu téléphones ?","Comment tu t'appelles ?","Comment ça marche ?","Où est la gare ?"]},
+        {t:'type', p:'Переведи «Я»', a:'je'},
+        {t:'type', p:'Переведи «ты»', a:'tu'},
+        {t:'gap', p:'Заполни пропуск', text:"___ m'appelle Anna.", word:'Je', hint:'я'},
+        {t:'choice', p:'«Enchanté» значит…', a:'очень приятно', o:['очень приятно','до свидания','спасибо','извините']},
+        {t:'type', p:'Напиши «герб городу»... нет: переведи «он»', a:'il'},
+        {t:'match', p:'Соедини пары', pairs:[['je','я'],['tu','ты'],['il','он'],['nous','мы']]}
+      ]},
+      { id:'l3', name:'Вопросы', icon:'❓', xp:15, q:[
+        {t:'choice', p:'«Comment» значит…', a:'как', o:['как','где','почему','когда']},
+        {t:'choice', p:'«Où» значит…', a:'где', o:['где','как','что','кто']},
+        {t:'type', p:'Переведи «почему»', a:'pourquoi'},
+        {t:'type', p:'Переведи «что»', a:'quoi'},
+        {t:'gap', p:'Вставь слово', text:'___ est la gare ?', word:'Où', hint:'где'},
+        {t:'match', p:'Соедини', pairs:[['comment','как'],['où','где'],['pourquoi','почему'],['quoi','что']]}
+      ]}
+    ]},
+  { id:'u2', title:'Еда и напитки', color:'#c2642b',
+    lessons:[
+      { id:'l4', name:'Базовая еда', icon:'🥖', xp:10, q:[
+        {t:'type', p:'Переведи «хлеб»', a:'pain'},
+        {t:'type', p:'Переведи «вода»', a:'eau'},
+        {t:'choice', p:'«Fromage» — это…', a:'сыр', o:['сыр','хлеб','мясо','рыба']},
+        {t:'choice', p:'«Café» — это…', a:'кофе', o:['кофе','чай','вода','вино']},
+        {t:'gap', p:'Вставь слово', text:'Je bois de l\'___.', word:'eau', hint:'вода'},
+        {t:'match', p:'Соедини', pairs:[['pain','хлеб'],['eau','вода'],['fromage','сыр'],['café','кофе']]}
+      ]},
+      { id:'l5', name:'Напитки', icon:'☕', xp:10, q:[
+        {t:'type', p:'Переведи «вино»', a:'vin'},
+        {t:'type', p:'Переведи «чай»', a:'thé'},
+        {t:'choice', p:'«Boire» значит…', a:'пить', o:['пить','есть','готовить','покупать']},
+        {t:'gap', p:'Вставь', text:'Je voudrais un ___, s\'il vous plaît.', word:'café', hint:'кофе'},
+        {t:'match', p:'Соедини', pairs:[['vin','вино'],['thé','чай'],['boire','пить'],['café','кофе']]}
+      ]},
+      { id:'l6', name:'В кафе', icon:'🍽', xp:15, q:[
+        {t:'choice', p:'«Je voudrais…» значит…', a:'я хотел бы…', o:['я хотел бы…','я знаю…','я имею…','я вижу…']},
+        {t:'type', p:'Переведи «мясо»', a:'viande'},
+        {t:'type', p:'Переведи «рыба»', a:'poisson'},
+        {t:'gap', p:'Вставь', text:"S'il vous plaît, l'___.", word:'addition', hint:'счёт'},
+        {t:'match', p:'Соедини', pairs:[['viande','мясо'],['poisson','рыба'],['addition','счёт'],['lait','молоко']]}
+      ]}
+    ]},
+  { id:'u3', title:'Семья и люди', color:'#b4552a',
+    lessons:[
+      { id:'l7', name:'Семья', icon:'👨‍👩‍👧', xp:10, q:[
+        {t:'type', p:'Переведи «мама»', a:'maman'},
+        {t:'type', p:'Переведи «папа»', a:'papa'},
+        {t:'choice', p:'«Famille» — это…', a:'семья', o:['семья','друг','город','страна']},
+        {t:'choice', p:'«Frère» — это…', a:'брат', o:['брат','сестра','дядя','сын']},
+        {t:'gap', p:'Вставь', text:'Ma ___ s\'appelle Marie.', word:'mère', hint:'мать'},
+        {t:'match', p:'Соедини', pairs:[['maman','мама'],['papa','папа'],['frère','брат'],['sœur','сестра']]}
+      ]},
+      { id:'l8', name:'Люди', icon:'🧑', xp:10, q:[
+        {t:'type', p:'Переведи «друг»', a:'ami'},
+        {t:'type', p:'Переведи «город»', a:'ville'},
+        {t:'choice', p:'«Enfant» — это…', a:'ребёнок', o:['ребёнок','старик','человек','молодой']},
+        {t:'match', p:'Соедини', pairs:[['ami','друг'],['ville','город'],['enfant','ребёнок'],['homme','человек']]}
+      ]}
+    ]},
+  { id:'u4', title:'Дом и быт', color:'#9a4a26',
+    lessons:[
+      { id:'l9', name:'Дом', icon:'🏠', xp:10, q:[
+        {t:'type', p:'Переведи «дом»', a:'maison'},
+        {t:'type', p:'Переведи «кровать»', a:'lit'},
+        {t:'choice', p:'«Chambre» — это…', a:'комната', o:['комната','кухня','окно','дверь']},
+        {t:'gap', p:'Вставь', text:"J'habite dans une ___.", word:'maison', hint:'дом'},
+        {t:'match', p:'Соедини', pairs:[['maison','дом'],['lit','кровать'],['chambre','комната'],['porte','дверь']]}
+      ]},
+      { id:'l10', name:'Вещи', icon:'📦', xp:10, q:[
+        {t:'type', p:'Переведи «книга»', a:'livre'},
+        {t:'type', p:'Переведи «стул»', a:'chaise'},
+        {t:'choice', p:'«Table» — это…', a:'стол', o:['стол','стул','шкаф','кровать']},
+        {t:'match', p:'Соедини', pairs:[['livre','книга'],['chaise','стул'],['table','стол'],['fenêtre','окно']]}
+      ]}
+    ]},
+  { id:'u5', title:'Глаголы и действия', color:'#8a3f22',
+    lessons:[
+      { id:'l11', name:'Языковые глаголы', icon:'🗣️', xp:10, q:[
+        {t:'type', p:'Переведи «говорить»', a:'parler'},
+        {t:'type', p:'Переведи «учить»', a:'apprendre'},
+        {t:'choice', p:'«Écouter» — это…', a:'слушать', o:['слушать','говорить','читать','писать']},
+        {t:'choice', p:'«Voir» — это…', a:'видеть', o:['видеть','слышать','есть','идти']},
+        {t:'match', p:'Соедини', pairs:[['parler','говорить'],['apprendre','учить'],['écouter','слушать'],['voir','видеть']]}
+      ]},
+      { id:'l12', name:'Повседневные', icon:'⚡', xp:15, q:[
+        {t:'type', p:'Переведи «работать»', a:'travailler'},
+        {t:'type', p:'Переведи «спать»', a:'dormir'},
+        {t:'choice', p:'«Manger» — это…', a:'есть', o:['есть','пить','покупать','готовить']},
+        {t:'gap', p:'Вставь', text:'Je veux ___ français.', word:'parler', hint:'говорить'},
+        {t:'match', p:'Соедини', pairs:[['travailler','работать'],['dormir','спать'],['manger','есть'],['boire','пить']]}
+      ]}
+    ]},
+  { id:'u6', title:'Город и транспорт', color:'#7a381f',
+    lessons:[
+      { id:'l13', name:'В городе', icon:'🏙️', xp:10, q:[
+        {t:'type', p:'Переведи «город»', a:'ville'},
+        {t:'type', p:'Переведи «улица»', a:'rue'},
+        {t:'choice', p:'«Gare» — это…', a:'вокзал', o:['вокзал','аэропорт','магазин','школа']},
+        {t:'match', p:'Соедини', pairs:[['ville','город'],['rue','улица'],['gare','вокзал'],['école','школа']]}
+      ]},
+      { id:'l14', name:'Транспорт', icon:'🚆', xp:15, q:[
+        {t:'type', p:'Переведи «поезд»', a:'train'},
+        {t:'type', p:'Переведи «машина»', a:'voiture'},
+        {t:'choice', p:'«Avion» — это…', a:'самолёт', o:['самолёт','поезд','корабль','автобус']},
+        {t:'gap', p:'Вставь', text:'Je prends le ___.', word:'train', hint:'поезд'},
+        {t:'match', p:'Соедини', pairs:[['train','поезд'],['voiture','машина'],['avion','самолёт'],['bus','автобус']]}
+      ]}
+    ]},
+  { id:'u7', title:'Время и дни', color:'#6a301c',
+    lessons:[
+      { id:'l15', name:'Дни недели', icon:'📅', xp:10, q:[
+        {t:'type', p:'Переведи «день»', a:'jour'},
+        {t:'type', p:'Переведи «понедельник»', a:'lundi'},
+        {t:'choice', p:'«Dimanche» — это…', a:'воскресенье', o:['воскресенье','суббота','понедельник','пятница']},
+        {t:'match', p:'Соедини', pairs:[['jour','день'],['lundi','понедельник'],['dimanche','воскресенье'],['semaine','неделя']]}
+      ]},
+      { id:'l16', name:'Время суток', icon:'🕐', xp:10, q:[
+        {t:'type', p:'Переведи «ночь»', a:'nuit'},
+        {t:'type', p:'Переведи «утро»', a:'matin'},
+        {t:'choice', p:'«Soir» — это…', a:'вечер', o:['вечер','утро','день','ночь']},
+        {t:'match', p:'Соедини', pairs:[['nuit','ночь'],['matin','утро'],['soir','вечер'],['jour','день']]}
+      ]}
+    ]}
+];
+
+const TOOLS = [
+  {id:'dict', name:'Словарь', icon:'📚', desc:'все слова', fn:'renderDict'},
+  {id:'conj', name:'Спряжения', icon:'🔤', desc:'глаголы', fn:'renderConj'},
+  {id:'dial', name:'Фразы', icon:'💬', desc:'диалоги', fn:'renderDial'}
+];
 
 const IRREGULAR = {
   "être":"je suis · tu es · il/elle est · nous sommes · vous êtes · ils/elles sont",
@@ -234,245 +300,344 @@ const IRREGULAR = {
   "aller":"je vais · tu vas · il/elle va · nous allons · vous allez · ils/elles vont",
   "faire":"je fais · tu fais · il/elle fait · nous faisons · vous faites · ils/elles font",
   "venir":"je viens · tu viens · il/elle vient · nous venons · vous venez · ils/elles viennent",
-  "dire":"je dis · tu dis · il/elle dit · nous disons · vous dites · ils/elles disent",
-  "pouvoir":"je peux · tu peux · il/elle peut · nous pouvons · vous pouvez · ils/elles peuvent",
-  "vouloir":"je veux · tu veux · il/elle veut · nous voulons · vous voulez · ils/elles veulent",
-  "prendre":"je prends · tu prends · il/elle prend · nous prenons · vous prenez · ils/elles prennent"
+  "dire":"je dis · tu dis · il/elle dit · nous disons · vous dites · ils/elles disent"
 };
 function conjugate(v){
-  v = v.trim().toLowerCase().replace(/'+$/,'');
-  if (IRREGULAR[v]) return IRREGULAR[v];
-  if (v.endsWith('er') && v.length>2){ const s=v.slice(0,-2); return `je ${s}e · tu ${s}es · il/elle ${s}e · nous ${s}ons · vous ${s}ez · ils/elles ${s}ent`; }
-  if (v.endsWith('ir') && v.length>2){ const s=v.slice(0,-2); return `je ${s}is · tu ${s}is · il/elle ${s}it · nous ${s}issons · vous ${s}issez · ils/elles ${s}issent`; }
-  if (v.endsWith('re') && v.length>2){ const s=v.slice(0,-2); return `je ${s}s · tu ${s}s · il/elle ${s} · nous ${s}sons · vous ${s}sez · ils/elles ${s}sent`; }
+  v=v.trim().toLowerCase().replace(/'+$/,'');
+  if(IRREGULAR[v]) return IRREGULAR[v];
+  if(v.endsWith('er')&&v.length>2){const s=v.slice(0,-2);return `je ${s}e · tu ${s}es · il/elle ${s}e · nous ${s}ons · vous ${s}ez · ils/elles ${s}ent`;}
+  if(v.endsWith('ir')&&v.length>2){const s=v.slice(0,-2);return `je ${s}is · tu ${s}is · il/elle ${s}it · nous ${s}issons · vous ${s}issez · ils/elles ${s}issent`;}
+  if(v.endsWith('re')&&v.length>2){const s=v.slice(0,-2);return `je ${s}s · tu ${s}s · il/elle ${s} · nous ${s}sons · vous ${s}sez · ils/elles ${s}sent`;}
   return null;
 }
-
-// ===== Меню =====
-function renderMenu(){
-  updateStreak();
-  const words = getWords();
-  render(`
-    <div class="center" style="margin-bottom:14px; animation:fadeUp .4s ease both;">
-      <div class="hero-title">Bonjour, c'est parti !</div>
-      <div class="sub">Изучай французский с удовольствием</div>
-    </div>
-    <div class="grid">
-      <button class="mbtn" onclick="renderCards()"><span class="emoji">🧠</span>Карточки<span class="desc">интервальное повторение</span></button>
-      <button class="mbtn" onclick="renderExercise()"><span class="emoji">✏️</span>Упражнения<span class="desc">тест на перевод</span></button>
-      <button class="mbtn" onclick="renderWords()"><span class="emoji">📚</span>Словарь<span class="desc">${words.length} слов</span></button>
-      <button class="mbtn" onclick="renderConj()"><span class="emoji">🔤</span>Спряжения<span class="desc">глаголы</span></button>
-      <button class="mbtn" onclick="renderDialogues()"><span class="emoji">💬</span>Диалоги<span class="desc">фразы для общения</span></button>
-      <button class="mbtn" onclick="renderProgress()"><span class="emoji">📊</span>Прогресс<span class="desc">статистика</span></button>
-      <button class="mbtn" onclick="renderAddWord()"><span class="emoji">➕</span>Свои слова<span class="desc">добавить новое</span></button>
-      <button class="mbtn" onclick="renderHelp()"><span class="emoji">ℹ️</span>Помощь<span class="desc">как пользоваться</span></button>
-    </div>
-  `);
-}
-
-// ===== Карточки =====
-let cardQueue = [];
-function renderCards(){
-  const words = getWords().filter(w=>w.box < 5);
-  if (!words.length){
-    render(`<div class="card center"><h2>Поздравляем! 🎉</h2><p class="sub">Все слова усвоены. Добавь новые или приходи завтра.</p>${backBtn()}`);
-    return;
-  }
-  cardQueue = [...words].sort((a,b)=>a.box-b.box || Math.random()-0.5);
-  showCard();
-}
-function showCard(){
-  if (!cardQueue.length){ renderMenu(); return; }
-  const w = cardQueue.shift();
-  render(`
-    <div class="card">
-      <div class="badge">Уровень ${w.box}/5</div>
-      <div class="center">
-        <div class="big">${w.fr}</div>
-        <div class="translit">${w.translit}</div>
-      </div>
-    </div>
-    <button class="primary" onclick="revealCard('${w.id}')">Показать перевод</button>
-    <div class="row"><button class="secondary" onclick="renderMenu()">← Меню</button></div>
-  `);
-}
-function revealCard(id){
-  const w = getWords().find(x=>x.id===id); if(!w) return;
-  const top = document.querySelector('.btnarea');
-  top.innerHTML =
-    `<div class="card center"><div class="big">${w.ru}</div><div class="sub">${w.translit}</div></div>
-     <div class="row"><button class="secondary" onclick="rateCard('${id}',1)">🤔 Не уверен</button>
-     <button class="green-btn" onclick="rateCard('${id}',0)">😄 Знаю</button></div>`;
-}
-function rateCard(id, again){
-  const w = getWords().find(x=>x.id===id); if(!w) return;
-  w.box = again ? 0 : Math.min(w.box+1, 5);
-  DATA.done++; if(!again) DATA.learned++;
-  save();
-  showCard();
-}
-
-// ===== Упражнения =====
-let exState = null;
-function renderExercise(){
-  exState = { dir: Math.random()<0.5?'fr2ru':'ru2fr', answer:'', wordId:null };
-  render(`
-    <div id="qbox"></div>
-    <div class="row"><button class="secondary" onclick="renderMenu()">← Меню</button></div>
-  `);
-  setTimeout(nextExercise, 0);
-}
-function nextExercise(){
-  const words = getWords(); if(!words.length){ renderMenu(); return; }
-  const w = words[Math.floor(Math.random()*words.length)];
-  exState.wordId = w.id;
-  exState.dir = Math.random()<0.5?'fr2ru':'ru2fr';
-  const q = exState.dir==='fr2ru' ? w.fr : w.ru;
-  exState.answer = (exState.dir==='fr2ru'? w.ru : w.fr).toLowerCase();
-  const hint = exState.dir==='fr2ru' ? w.translit : '';
-  document.getElementById('qbox').innerHTML =
-    `<div class="card center"><h2>Переведи:</h2><div class="big">🇫🇷 ${q}</div>${hint?'<div class="translit">'+hint+'</div>':''}</div>
-     <input type="text" id="exinput" placeholder="Твой ответ…">
-     <button class="primary" onclick="checkEx()">Проверить</button>
-     <div class="feedback" id="exfb"></div>`;
-  document.getElementById('exinput').focus();
-}
-function checkEx(){
-  const input = document.getElementById('exinput');
-  const val = input.value.trim().toLowerCase();
-  const fb = document.getElementById('exfb');
-  if (val === exState.answer){
-    DATA.done++; save();
-    fb.innerHTML = '<span style="color:var(--green)">✅ Правильно!</span>';
-  } else {
-    fb.innerHTML = `❌ Правильно: <b style="color:var(--amber)">${exState.answer}</b>`;
-  }
-  setTimeout(nextExercise, 1400);
-}
-
-// ===== Словарь =====
-function renderWords(){
-  const words = getWords();
-  render(`
-    <div class="card"><h2>📚 Словарь (${words.length})</h2>
-      <div class="wordlist">
-        ${words.map(w=>`<div class="w">
-          <div><span class="fr">${w.fr}</span> <span class="ru">— ${w.ru}</span></div>
-          <span class="b">ур.${w.box}</span>
-        </div>`).join('')}
-      </div>
-    </div>
-    ${backBtn()}
-  `);
-}
-
-// ===== Спряжения =====
-function renderConj(){
-  render(`
-    <div class="card"><h2>🔤 Спряжения</h2>
-      <p class="sub">Выбери глагол или введи свой (parler, finir, vendre…)</p>
-      <div class="grid">
-        ${Object.keys(IRREGULAR).map(v=>`<button class="mbtn" onclick="showConj('${v}')"><span class="emoji">📖</span>${v}</button>`).join('')}
-      </div>
-      <input type="text" id="conjin" placeholder="Введи глагол…" onkeydown="if(event.key==='Enter')conjInput()">
-      <button class="primary" onclick="conjInput()">Спрягать</button>
-      <div id="conjout"></div>
-    </div>
-    ${backBtn()}
-  `);
-}
-function showConj(v){
-  const res = conjugate(v);
-  document.getElementById('conjout').innerHTML = `<div class="card center"><div class="big">${v}</div><div class="sub">${res}</div></div>`;
-}
-function conjInput(){
-  const v = document.getElementById('conjin').value;
-  const res = conjugate(v);
-  if (!res){ document.getElementById('conjout').innerHTML='<div class="banner">Не распознал глагол. Попробуй, напр.: chanter, finir, vendre</div>'; return; }
-  showConj(v);
-}
-
-// ===== Диалоги =====
 const DIALOGUES = [
   {name:"💬 Знакомство", text:"— Bonjour ! Comment t'appelles-tu ?\n— Je m'appelle Anna. Et toi ?\n— Moi, c'est Marc. Enchanté !", ru:"— Здравствуй! Как тебя зовут?\n— Меня зовут Анна. А ты?\n— Я Марк. Очень приятно!"},
   {name:"☕ В кафе", text:"— Bonjour, je voudrais un café, s'il vous plaît.\n— Avec du lait ?\n— Non, noir, merci.", ru:"— Здравствуйте, я хотел бы кофе, пожалуйста.\n— С молоком?\n— Нет, чёрный, спасибо."},
   {name:"🗺 Спросить дорогу", text:"— Excusez-moi, où est la gare ?\n— C'est tout droit, puis à gauche.\n— Merci beaucoup !", ru:"— Извините, где вокзал?\n— Это прямо, потом налево.\n— Большое спасибо!"}
 ];
-function renderDialogues(){
-  render(`
-    <div class="card"><h2>💬 Диалоги</h2>
-      ${DIALOGUES.map((d,i)=>`<div class="wordlist"><div class="w" style="cursor:pointer" onclick="showDialogue(${i})"><span class="fr">${d.name}</span><span class="b">открыть →</span></div></div>`).join('')}
-    </div>
-    ${backBtn()}
-  `);
+
+// ===== Прогресс уроков =====
+function allLessons(){
+  const out=[];
+  UNITS.forEach(u=>u.lessons.forEach(l=>out.push({...l, unitId:u.id})));
+  return out;
 }
-function showDialogue(i){
-  const d = DIALOGUES[i];
-  render(`
-    <div class="card"><h2>${d.name}</h2><div class="sub" style="font-size:15px;line-height:1.7;white-space:pre-line">${d.text}</div></div>
-    <div class="card"><h2>🇷🇺 Перевод</h2><div class="sub" style="white-space:pre-line">${d.ru}</div></div>
-    ${backBtn()}
-  `);
+function lessonNumber(id){ return allLessons().findIndex(l=>l.id===id); }
+function isUnlocked(lessonId){
+  const idx = lessonNumber(lessonId);
+  if(idx<=0) return true;
+  const prev = allLessons()[idx-1];
+  return DATA.completed[prev.id]===true;
+}
+function unitCompleted(u){ return u.lessons.every(l=>DATA.completed[l.id]); }
+
+// ===== Рендеринг =====
+const app = document.getElementById('app');
+const overlayRoot = document.getElementById('overlayRoot');
+function render(html){ app.innerHTML=html; window.scrollTo(0,0); }
+function updateHeader(){
+  const e=document.querySelector('.hero .xp'); if(e) e.textContent='⚡ '+DATA.xp;
+  const s=document.querySelector('.hero .streak'); if(s) s.textContent='🔥 '+DATA.streak;
 }
 
-// ===== Прогресс =====
-function renderProgress(){
-  const words = getWords();
-  const learned = words.filter(w=>w.box>=3).length;
-  const total = words.length;
-  const pct = Math.round(learned/total*100);
-  render(`
-    <div class="card"><h2>📊 Твой прогресс</h2>
-      <div class="stat"><span>Слов в словаре</span><b>${total}</b></div>
-      <div class="stat"><span>Уверенно знаешь</span><b>${learned}</b></div>
-      <div class="stat"><span>Правильных ответов</span><b>${DATA.done}</b></div>
-      <div class="stat"><span>Серия занятий</span><b>🔥 ${DATA.streak} дн.</b></div>
-      <div class="box-line"><div class="box-fill" style="width:${pct}%"></div></div>
-      <div class="sub">Освоено ${pct}% словаря</div>
-    </div>
-    ${backBtn()}
-  `);
-}
+const DAILY_GOAL = 20;
+function dailyPct(){ return DATA.done>=DAILY_GOAL?1:Math.round(DATA.done/DAILY_GOAL*100); }
 
-// ===== Добавить слово =====
-function renderAddWord(){
+// ===== Главный экран: юниты =====
+function renderMenu(){
+  updateStreak();
+  const pct=dailyPct();
   render(`
-    <div class="card"><h2>➕ Новое слово</h2>
-      <input type="text" id="nf" placeholder="Слово (напр. enfant)">
-      <input type="text" id="nr" placeholder="Перевод (напр. ребёнок)">
-      <input type="text" id="nt" placeholder="Чтение (необязательно: анфан)">
-      <button class="primary" onclick="addWord()">Сохранить</button>
-      <div id="addfb"></div>
+    <div class="hero">
+      <div class="top">
+        <span class="xp">⚡ <span id="xpTop">${DATA.xp}</span></span>
+        <span class="streak">🔥 <span id="streakTop">${DATA.streak}</span></span>
+      </div>
+      <h1>Французский</h1>
+      <div class="goal">Цель дня: ${DATA.done}/${DAILY_GOAL} · учись каждый день!</div>
+      <div class="goalline"><div class="goalfill" style="width:${pct}%"></div></div>
     </div>
-    ${backBtn()}
-  `);
-}
-function addWord(){
-  const f = document.getElementById('nf').value.trim();
-  const r = document.getElementById('nr').value.trim();
-  if(!f || !r){ document.getElementById('addfb').innerHTML='<div class="banner">Заполни слово и перевод.</div>'; return; }
-  getWords().push({ id:'u'+Date.now(), fr:f, ru:r, translit:document.getElementById('nt').value.trim(), box:0 });
-  DATA.done++; save();
-  document.getElementById('addfb').innerHTML='<div class="ok">✅ Добавлено!</div>';
-  document.getElementById('nf').value=''; document.getElementById('nr').value=''; document.getElementById('nt').value='';
-}
-
-// ===== Помощь =====
-function renderHelp(){
-  render(`
-    <div class="card"><h2>ℹ️ Как пользоваться</h2>
-      <div class="wordlist">
-        <div class="w"><div><b>🧠 Карточки</b></div><div class="sub">вспоминай перевод, «Знаю» повышает уровень</div></div>
-        <div class="w"><div><b>✏️ Упражнения</b></div><div class="sub">перевод в обе стороны</div></div>
-        <div class="w"><div><b>🔤 Спряжения</b></div><div class="sub">введи глагол — получишь спряжение</div></div>
-        <div class="w"><div><b>💬 Диалоги</b></div><div class="sub">полезные фразы для общения</div></div>
+    ${UNITS.map(u=>`
+      <div class="unit">
+        <h2>${u.title}</h2>
+        <div class="utitle">Юнит · ${unitCompleted(u)?'✅ пройдено':'продолжай'}</div>
+        ${u.lessons.map(l=>{
+          const num=lessonNumber(l.id);
+          const locked=!isUnlocked(l.id);
+          const passed=DATA.completed[l.id];
+          const stars=DATA.stars[l.id]||0;
+          const starHtml='★'.repeat(3);
+          return `<div class="lesson ${locked?'locked':passed?'passed':'open'}" onclick="${locked?'':'startLesson(\''+l.id+'\')'}">
+            <div class="icon">${locked?'🔒':passed?'✅':l.icon}</div>
+            <div class="info">
+              <span class="nm">${l.name}</span>
+              <span class="dx">${passed?'Пройдено · +'+l.xp+' XP':l.q.length+' заданий · +'+l.xp+' XP'}</span>
+            </div>
+            <div class="stars">${passed?starHtml:''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `).join('')}
+    <div class="unit">
+      <h2>Инструменты</h2>
+      <div class="utitle">справка и проверка</div>
+      <div class="grid2">
+        ${TOOLS.map(t=>`<button class="mbtn" onclick="${t.fn}()"><span class="emoji">${t.icon}</span>${t.name}<span class="desc">${t.desc}</span></button>`).join('')}
       </div>
     </div>
-    ${backBtn()}
   `);
 }
 
-// ===== Запуск =====
+// ===== Прохождение урока =====
+let LS = { lesson:null, idx:0, correct:0, sel:null, matchSel:null, matchPairs:[], inp:null };
+function startLesson(id){
+  const all=allLessons(); const l=all.find(x=>x.id===id); if(!l) return;
+  if(!isUnlocked(id)) return;
+  LS={ lesson:l, idx:0, correct:0, sel:null, matchSel:null, matchPairs:[], inp:null };
+  showQuestion();
+}
+function showQuestion(){
+  if(LS.idx>=LS.lesson.q.length){ finishLesson(); return; }
+  const q=LS.lesson.q[LS.idx];
+  LS.sel=null; LS.matchSel=null; LS.matchPairs=[]; LS.inp=null;
+  const prog=Math.round(LS.idx/LS.lesson.q.length*100);
+  let body='';
+  if(q.t==='choice'){
+    body=`<div class="qcard">
+      <div class="qprompt">${q.p}</div>
+      <div class="qtext">${q.q||q.a}</div>
+    </div>
+    <div class="opts">
+      ${q.o.map(o=>`<button class="opt" data-v="${o}" onclick="pickOpt(this,'${o}')">${o}</button>`).join('')}
+    </div>`;
+  } else if(q.t==='type'){
+    body=`<div class="qcard">
+      <div class="qprompt">${q.p}</div>
+      <div class="qtext">${q.q}</div>
+      ${q.hint?`<div class="qhint">💡 ${q.hint}</div>`:''}
+    </div>
+    <input type="text" class="fillin" id="fillin" placeholder="Напиши ответ…" autocomplete="off" autocapitalize="off" autocorrect="off">`;
+  } else if(q.t==='gap'){
+    const parts=q.text.split('___');
+    body=`<div class="qcard">
+      <div class="qprompt">${q.p}</div>
+      <div class="qtext">${parts[0]}<span class="gap-word">___</span>${parts[1]}</div>
+      ${q.hint?`<div class="qhint">💡 ${q.hint}</div>`:''}
+    </div>
+    <input type="text" class="fillin" id="fillin" placeholder="Вставь слово…">`;
+  } else if(q.t==='match'){
+    LS.matchPairs=shuffle(q.pairs.flatMap(p=>p)).map(v=>({v, matched:false}));
+    body=`<div class="qcard"><div class="qprompt">${q.p}</div></div>
+    <div class="match-tile">
+      ${LS.matchPairs.map((p,i)=>`<div class="mtile" data-i="${i}" onclick="pickMatch(${i})"><span>${p.v}</span><span class="ch">${p.matched?'✓':''}</span></div>`).join('')}
+    </div>`;
+  }
+  render(`<div class="topbar"><button class="back" onclick="leaveLesson()">✕</button><h2>${LS.lesson.name}</h2><span>${LS.idx+1}/${LS.lesson.q.length}</span></div>
+    <div class="qprogress"><div class="qfill" style="width:${prog}%"></div></div>
+    ${body}
+    <div id="actionsArea"></div>
+    <div class="feedback" id="fb"></div>
+  `);
+  if(q.t==='type'||q.t==='gap'){
+    const inp=document.getElementById('fillin');
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') checkAnswer(); });
+    inp.focus();
+    LS.inp=inp;
+  } else if(q.t==='choice'){
+    renderActionsCheck();
+  } else if(q.t==='match'){
+    renderMatchBar();
+  }
+}
+function renderActionsCheck(){
+  document.getElementById('actionsArea').innerHTML=`<div class="btn-actions"><button class="btn btn-check btn" id="chkB" disabled onclick="checkAnswer()">Проверить</button></div>`;
+}
+function renderActionsNext(){
+  document.getElementById('actionsArea').innerHTML=`<div class="btn-actions"><button class="btn btn-next btn" onclick="nextQ()">Продолжить →</button></div>`;
+}
+function renderMatchBar(){
+  document.getElementById('actionsArea').innerHTML=`<div class="btn-actions"><button class="btn btn-check btn" id="chkB" onclick="checkMatch()">Проверить</button></div>`;
+}
+function pickOpt(btn,v){
+  if(LS.sel) return; // уже выбрано
+  document.querySelectorAll('.opt.sel').forEach(x=>x.classList.remove('sel'));
+  btn.classList.add('sel'); LS.sel=v;
+  document.getElementById('chkB').disabled=false;
+}
+function pickMatch(i){
+  const p=LS.matchPairs[i]; if(p.matched) return;
+  if(LS.matchSel===null){
+    LS.matchSel=i;
+    document.querySelectorAll('.mtile.sel').forEach(x=>x.classList.remove('sel'));
+    document.querySelector(`.mtile[data-i="${i}"]`).classList.add('sel');
+  } else if(LS.matchSel===i){
+    LS.matchSel=null;
+    document.querySelector(`.mtile[data-i="${i}"]`).classList.remove('sel');
+  } else {
+    const j=LS.matchSel;
+    const a=LS.matchPairs[j], b=LS.matchPairs[i];
+    // проверяем, образуют ли они пару (фр+ру)
+    const pair=LS.lesson.q[LS.idx].pairs;
+    const isPair=pair.some(p=>{ const s=new Set(p); return s.has(a.v)&&s.has(b.v); });
+    if(isPair){
+      a.matched=true; b.matched=true;
+      document.querySelectorAll('.mtile.sel').forEach(x=>x.classList.remove('sel'));
+      const i1=j,i2=i;
+      LS.matchPairs[i1].matched=true; LS.matchPairs[i2].matched=true;
+    } else {
+      const ea=document.querySelector(`.mtile[data-i="${j}"]`);
+      const eb=document.querySelector(`.mtile[data-i="${i}"]`);
+      ea.style.border='2px solid var(--red)';
+      setTimeout(()=>{ ea.style.border=''; },350);
+    }
+    LS.matchSel=null;
+    const allMatched=LS.matchPairs.every(p=>p.matched);
+    if(allMatched){ correctNow(); }
+  }
+}
+function checkMatch(){
+  // автоматически отмечается по мере сопоставления
+}
+function checkAnswer(){
+  const q=LS.lesson.q[LS.idx];
+  let user='';
+  if(q.t==='choice') user=LS.sel||'';
+  else if(q.t==='type'||q.t==='gap') user=(document.getElementById('fillin').value||'').trim().toLowerCase();
+  const answer=String(q.a||'').toLowerCase();
+  let ok=false;
+  if(q.t==='choice'){
+    ok=user.toLowerCase()===answer;
+  } else {
+    ok=user===answer;
+    if(!ok && q.aliases){ ok=q.aliases.some(a=>a.toLowerCase()===user); }
+    if(!ok){ const norm=s=>s.replace(/[èéêë]/g,'e').replace(/[àâ]/g,'a').replace(/[ç]/g,'c').replace(/\s+/g,' ').trim();
+      ok=norm(user)===norm(answer); }
+  }
+  const fb=document.getElementById('fb');
+  if(ok){ correctNow(); }
+  else{
+    fb.innerHTML=`<span class="fb-wrong">✖ Правильно: ${q.a}</span>`;
+    if(q.t==='type'||q.t==='gap'){
+      const inp=document.getElementById('fillin');
+      inp.style.border='2px solid var(--red)';
+    }
+    else{ document.querySelectorAll('.opt').forEach(o=>{ if(o.getAttribute('data-v')===String(q.a)) o.classList.add('correct'); }); document.querySelectorAll('.opt.sel').forEach(o=>o.classList.add('wrong')); }
+    // не засчитываем, даём ещё шанс
+    setTimeout(()=>{
+      fb.innerHTML='';
+      if(q.t==='choice'){
+        document.querySelectorAll('.opt').forEach(o=>{o.classList.remove('correct','wrong','sel');});
+        LS.sel=null; document.getElementById('chkB').disabled=true;
+      } else {
+        const inp=document.getElementById('fillin'); if(inp){ inp.value=''; inp.style.border=''; inp.focus(); }
+      }
+    },900);
+  }
+}
+function correctNow(){
+  const q=LS.lesson.q[LS.idx];
+  LS.correct++;
+  DATA.done++;
+  const fb=document.getElementById('fb');
+  fb.innerHTML=`<span class="fb-correct">✔ Верно!</span>`;
+  if(q.t==='choice'){
+    document.querySelectorAll('.opt.sel').forEach(o=>o.classList.remove('sel','wrong'));
+    document.querySelectorAll('.opt[data-v="'+q.a+'"]').forEach(o=>o.classList.add('correct'));
+    document.querySelectorAll('.opt').forEach(o=>{o.disabled=true;});
+  } else if(q.t==='type'||q.t==='gap'){
+    const inp=document.getElementById('fillin'); if(inp){ inp.disabled=true; inp.style.border='2px solid var(--green)'; }
+  } else if(q.t==='match'){
+    // уже сопоставлено
+  }
+  save();
+  renderActionsNext();
+}
+function nextQ(){
+  LS.idx++; showQuestion();
+}
+function leaveLesson(){
+  LS.idx=999; renderMenu();
+}
+function finishLesson(){
+  const l=LS.lesson;
+  DATA.completed[l.id]=true;
+  DATA.stars[l.id]=3;
+  DATA.xp+=l.xp;
+  save();
+  showComplete(l.xp, l.name);
+}
+
+// ===== Экран завершения =====
+function showComplete(xp,name){
+  renderConfetti();
+  overlayRoot.innerHTML=`<div class="overlay"><div class="complete">
+    <div class="big">🎉</div>
+    <h2>Урок пройден!</h2>
+    <p>${name}</p>
+    <div class="xpget">+${xp} XP</div>
+    <button class="btn-done" onclick="closeComplete()">Продолжить</button>
+  </div></div>`;
+}
+function closeComplete(){ overlayRoot.innerHTML=''; renderMenu(); }
+function renderConfetti(){
+  const colors=['#e8853d','#f2b04c','#7fb257','#e05a3d','#fff'];
+  let html='';
+  for(let i=0;i<40;i++){
+    const left=Math.random()*100; const delay=Math.random()*3; const dur=3+Math.random()*3;
+    const c=colors[i%colors.length];
+    html+=`<span style="left:${left}%;background:${c};animation-duration:${dur}s;animation-delay:${delay}s"></span>`;
+  }
+  overlayRoot.innerHTML+=`<div class="confetti">${html}</div>`;
+}
+
+// ===== Инструменты =====
+function renderDict(){
+  const words=collectWords();
+  render(`<div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>📚 Словарь</h2></div>
+  <div class="card"><div class="wordlist">
+    ${words.map(w=>`<div class="w"><div><span class="fr">${w.fr}</span> <span class="ru">— ${w.ru}</span></div><span>${w.tr}</span></div>`).join('')}
+  </div></div>`);
+}
+function collectWords(){
+  const seen={}; const out=[];
+  UNITS.forEach(u=>u.lessons.forEach(l=>l.q.forEach(q=>{
+    const list=[]; 
+    if(q.t==='type') list.push([q.q,q.a]);
+    else if(q.t==='match') q.pairs.forEach(p=>{ out.push({fr:p[0],ru:p[1],tr:''}); });
+  })));
+  return dedupe(out);
+}
+function dedupe(a){ const m={}; const r=[]; a.forEach(x=>{ if(!m[x.fr]){m[x.fr]=1;r.push(x);} }); return r; }
+
+function renderConj(){
+  render(`<div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>🔤 Спряжения</h2></div>
+  <div class="card">
+    <p class="sub">Выбери глагол или введи свой</p>
+    <div class="grid2">
+      ${Object.keys(IRREGULAR).map(v=>`<button class="mbtn" onclick="showConj('${v}')"><span class="emoji">📖</span>${v}</button>`).join('')}
+    </div>
+    <input type="text" id="conjin" placeholder="Введи глагол…">
+    <button class="btn-check btn" style="width:100%;border:none;border-radius:13px;padding:14px;font-weight:700" onclick="conjInput()">Спрягать</button>
+    <div id="conjout"></div>
+  </div>`);
+}
+function showConj(v){ const r=conjugate(v); document.getElementById('conjout').innerHTML=`<div class="card center"><div class="big">${v}</div><div class="sub">${r}</div></div>`; }
+function conjInput(){ const v=document.getElementById('conjin').value; const r=conjugate(v); if(!r){document.getElementById('conjout').innerHTML='<div class="banner">Не распознал глагол</div>'; return;} showConj(v); }
+
+function renderDial(){
+  render(`<div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>💬 Фразы</h2></div>
+  <div class="card">
+    ${DIALOGUES.map((d,i)=>`<div class="wordlist"><div class="w" style="cursor:pointer" onclick="showDial(${i})"><span class="fr">${d.name}</span><span>→</span></div></div>`).join('')}
+  </div>`);
+}
+function showDial(i){ const d=DIALOGUES[i];
+  render(`<div class="topbar"><button class="back" onclick="renderDial()">←</button><h2>${d.name}</h2></div>
+  <div class="card"><div class="sub" style="white-space:pre-line;font-size:15px;line-height:1.7">${d.text}</div></div>
+  <div class="card"><h2>🇷🇺 Перевод</h2><div class="sub" style="white-space:pre-line">${d.ru}</div></div>`);
+}
+
+function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
 renderMenu();
 </script>
 </body>
