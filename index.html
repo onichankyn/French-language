@@ -404,8 +404,7 @@ function showQuestion(){
   let body='';
   if(q.t==='choice'){
     body=`<div class="qcard">
-      <div class="qprompt">${q.p}</div>
-      <div class="qtext">${q.q||q.a}</div>
+      <div class="qtext">${q.q||q.p}</div>
     </div>
     <div class="opts">
       ${q.o.map(o=>`<button class="opt" data-v="${o}" onclick="pickOpt(this,'${o}')">${o}</button>`).join('')}
