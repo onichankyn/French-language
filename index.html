@@ -17,6 +17,12 @@
     --radius:20px;
     --grad:linear-gradient(135deg,#e8853d,#e05a3d);
   }
+  body[data-theme="light"]{
+    --bg:#f7efe3; --card:#fff8ec; --card2:#f0e2cc;
+    --txt:#3a2a1a; --sub:#8a6b48; --accent:#e07a33; --accent2:#d98a2b;
+    --green:#6aa84f; --red:#d9534f; --gold:#c07f1f;
+    --grad:linear-gradient(135deg,#e07a33,#d4552e);
+  }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
@@ -118,6 +124,17 @@
   .complete .xpget{font-size:18px; font-weight:800; color:var(--gold); margin:12px 0 20px;}
   .complete p{color:var(--sub); font-size:14px;}
   .btn-done{background:var(--grad); color:#fff; border:none; border-radius:15px; padding:16px; font-size:16px; font-weight:800; width:100%; cursor:pointer; box-shadow:0 6px 20px rgba(232,133,61,.35);}
+  /* Графики и тепловая карта */
+  .chart{display:flex; align-items:flex-end; gap:8px; height:110px; padding-top:6px;}
+  .chartcol{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0;}
+  .chartcol .bar{width:100%; max-width:34px; background:var(--grad); border-radius:6px 6px 0 0; min-height:3px; transition:height .3s;}
+  .chartcol .barv{font-size:11px; color:var(--sub);}
+  .chartcol .barlab{font-size:10px; color:var(--sub);}
+  .heat{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
+  .hcell{aspect-ratio:1; border-radius:5px; background:rgba(255,255,255,.05);}
+  .hcell.h1{background:rgba(232,133,61,.35);}
+  .hcell.h2{background:rgba(232,133,61,.7);}
+  .hcell.h3{background:var(--grad);}
 </style>
 </head>
 <body>
@@ -133,11 +150,78 @@ if (tg){ tg.ready(); tg.expand(); try{ tg.setHeaderColor('#1b120c'); tg.setBackg
 const LS_KEY = 'french_app_v2';
 function loadData(){
   try{ const raw = localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw); }catch(e){}
-  return { xp:0, done:0, streak:1, lastDay:null, completed:{}, stars:{} };
+  return { xp:0, done:0, streak:1, lastDay:null, completed:{}, stars:{},
+           history:{},        // { "2025-5-1": {done:n, xp:n} }
+           wordErrors:{},     // { "bonjour": n }
+           goal:20,
+           challenge:{ date:null, done:0, total:0, type:null },
+           remind:null,     // {time:'HH:MM'} или null
+           theme:'dark' };  // 'dark' | 'light'
 }
 const DATA = loadData();
-function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DATA)); }catch(e){} updateHeader(); }
+function applyTheme(){
+  const cur=DATA.theme||'dark';
+  document.body.setAttribute('data-theme', cur);
+  if(tg){ try{ tg.setHeaderColor(cur==='light'?'#f7efe3':'#1b120c'); tg.setBackgroundColor(cur==='light'?'#f7efe3':'#1b120c'); }catch(e){} }
+}
+function toggleTheme(){
+  DATA.theme=(DATA.theme||'dark')==='dark'?'light':'dark';
+  save(); applyTheme(); renderMenu();
+}
+applyTheme();
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DATA)); }catch(e){} updateHeader(); syncCloud(); }
+
+// ===== Офлайн (Service Worker) =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+// ===== Синхронизация через Telegram CloudStorage (если открыт в Telegram) =====
+let syncTimer=null;
+function syncCloud(){
+  if(!tg || !tg.CloudStorage) return;
+  // троттлинг: сохраняем не чаще раза в 2 сек
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>{
+    try{ tg.CloudStorage.setItem('data', JSON.stringify(DATA)); }catch(e){}
+  }, 2000);
+}
+function pullCloud(){
+  if(!tg || !tg.CloudStorage) return;
+  try{
+    tg.CloudStorage.getItem('data',(err,val)=>{
+      if(err || !val) return;
+      try{
+        const remote=JSON.parse(val);
+        // объединяем: берём максимум прогресса
+        if(remote.xp && remote.xp>DATA.xp && (!DATA.firstInit)){ /* игнорим чужой старый */ }
+        // Простая стратегия: сохраняем новое, если локальный lastDay старше — берём отдалённый
+        DATA.xp=Math.max(DATA.xp, remote.xp||0);
+        DATA.done=Math.max(DATA.done, remote.done||0);
+        DATA.streak=Math.max(DATA.streak, remote.streak||1);
+        if(remote.completed) Object.assign(DATA.completed, remote.completed);
+        if(remote.wordErrors) { DATA.wordErrors=DATA.wordErrors||{}; Object.keys(remote.wordErrors).forEach(k=>{ DATA.wordErrors[k]=Math.max(DATA.wordErrors[k]||0, remote.wordErrors[k]); }); }
+        save();
+        if(typeof render==='function') renderMenu();
+      }catch(e){}
+    });
+  }catch(e){}
+}
+window.addEventListener('DOMContentLoaded', ()=>{ if(tg) pullCloud(); });
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function logActivity(doneN, xpN){
+  const t=todayStr();
+  DATA.history[t]=DATA.history[t]||{done:0,xp:0};
+  DATA.history[t].done+=doneN||0;
+  DATA.history[t].xp+=xpN||0;
+}
+function recordWordError(q){
+  const key = (q.a||'').toLowerCase();
+  if(!key) return;
+  DATA.wordErrors[key]=(DATA.wordErrors[key]||0)+1;
+}
 function updateStreak(){
   const t = todayStr();
   if(DATA.lastDay && DATA.lastDay !== t){
@@ -285,10 +369,109 @@ const UNITS = [
         {t:'choice', p:'«Soir» — это…', a:'вечер', o:['вечер','утро','день','ночь']},
         {t:'match', p:'Соедини', pairs:[['nuit','ночь'],['matin','утро'],['soir','вечер'],['jour','день']]}
       ]}
+    ]},
+  { id:'u8', title:'Числительные', color:'#e05a3d',
+    lessons:[
+      { id:'l17', name:'От 1 до 10', icon:'1️⃣', xp:10, q:[
+        {t:'type', p:'Переведи «один»', a:'un'},
+        {t:'type', p:'Переведи «два»', a:'deux'},
+        {t:'choice', p:'«Trois» — это…', a:'три', o:['три','два','пять','четыре']},
+        {t:'choice', p:'«Cinq» — это…', a:'пять', o:['пять','шесть','семь','четыре']},
+        {t:'match', p:'Соедини', pairs:[['un','один'],['deux','два'],['trois','три'],['quatre','четыре'],['cinq','пять']]}
+      ]},
+      { id:'l18', name:'От 10 до 20', icon:'🔟', xp:10, q:[
+        {t:'type', p:'Переведи «десять»', a:'dix'},
+        {t:'type', p:'Переведи «пятнадцать»', a:'quinze'},
+        {t:'choice', p:'«Vingt» — это…', a:'двадцать', o:['двадцать','десять','пятнадцать','сто']},
+        {t:'choice', p:'«Dix-neuf» — это…', a:'девятнадцать', o:['девятнадцать','девять','десять','двадцать']},
+        {t:'match', p:'Соедини', pairs:[['dix','десять'],['douze','двенадцать'],['quinze','пятнадцать'],['vingt','двадцать']]}
+      ]}
+    ]},
+  { id:'u9', title:'Покупки', color:'#c2642b',
+    lessons:[
+      { id:'l19', name:'В магазине', icon:'🛒', xp:10, q:[
+        {t:'type', p:'Переведи «магазин»', a:'magasin'},
+        {t:'type', p:'Переведи «цена»', a:'prix'},
+        {t:'choice', p:'«Acheter» — это…', a:'покупать', o:['покупать','продавать','платить','считать']},
+        {t:'gap', p:'Вставь', text:'Combien ça ___.?', word:'coûte', hint:'стоит'},
+        {t:'match', p:'Соедини', pairs:[['magasin','магазин'],['prix','цена'],['acheter','покупать'],['payer','платить']]}
+      ]},
+      { id:'l20', name:'Деньги', icon:'💰', xp:15, q:[
+        {t:'type', p:'Переведи «деньги»', a:'argent'},
+        {t:'type', p:'Переведи «сдача»', a:'monnaie'},
+        {t:'choice', p:'«Carte» (в магазине) — это…', a:'карта', o:['карта','наличные','чек','скидка']},
+        {t:'gap', p:'Вставь', text:"___ cet article ?", word:'Combien', hint:'сколько'},
+        {t:'match', p:'Соедини', pairs:[['argent','деньги'],['monnaie','сдача'],['carte','карта'],['réduction','скидка']]}
+      ]}
+    ]},
+  { id:'u10', title:'Погода и природа', color:'#b4552a',
+    lessons:[
+      { id:'l21', name:'Погода', icon:'🌦️', xp:10, q:[
+        {t:'type', p:'Переведи «погода»', a:'temps'},
+        {t:'type', p:'Переведи «дождь»', a:'pluie'},
+        {t:'choice', p:'«Soleil» — это…', a:'солнце', o:['солнце','дождь','снег','ветер']},
+        {t:'choice', p:'«Neige» — это…', a:'снег', o:['снег','солнце','туман','град']},
+        {t:'gap', p:'Вставь', text:"Il ___ aujourd'hui.", word:'pleut', hint:'идёт дождь'},
+        {t:'match', p:'Соедини', pairs:[['temps','погода'],['pluie','дождь'],['soleil','солнце'],['neige','снег']]}
+      ]},
+      { id:'l22', name:'Природа', icon:'🌳', xp:10, q:[
+        {t:'type', p:'Переведи «гора»', a:'montagne'},
+        {t:'type', p:'Переведи «река»', a:'rivière'},
+        {t:'choice', p:'«Forêt» — это…', a:'лес', o:['лес','поле','гора','озеро']},
+        {t:'match', p:'Соедини', pairs:[['montagne','гора'],['rivière','река'],['forêt','лес'],['mer','море']]}
+      ]}
+    ]},
+  { id:'u11', title:'Путешествия', color:'#9a4a26',
+    lessons:[
+      { id:'l23', name:'Поездка', icon:'🧳', xp:10, q:[
+        {t:'type', p:'Переведи «билет»', a:'billet'},
+        {t:'type', p:'Переведи «аэропорт»', a:'aéroport'},
+        {t:'choice', p:'«Voyage» — это…', a:'поездка', o:['поездка','билет','валюта','тостраница']},
+        {t:'gap', p:'Вставь', text:"Un billet pour ___, s'il vous plaît.", word:'Paris', hint:'город во Франции'},
+        {t:'match', p:'Соедини', pairs:[['billet','билет'],['aéroport','аэропорт'],['voyage','поездка'],['valise','чемодан']]}
+      ]},
+      { id:'l24', name:'Гостиница', icon:'🏨', xp:15, q:[
+        {t:'type', p:'Переведи «номер»', a:'chambre'},
+        {t:'type', p:'Переведи «ключ»', a:'clé'},
+        {t:'choice', p:'«Réservation» — это…', a:'бронирование', o:['бронирование','ключ','номер','адрес']},
+        {t:'gap', p:'Вставь', text:'J\'ai une ___ pour deux nuits.', word:'réservation', hint:'бронь'},
+        {t:'match', p:'Соедини', pairs:[['chambre','номер'],['clé','ключ'],['réservation','бронь'],['adresse','адрес']]}
+      ]}
+    ]},
+  { id:'u12', title:'Профессии и работа', color:'#8a3f22',
+    lessons:[
+      { id:'l25', name:'Профессии', icon:'👷', xp:10, q:[
+        {t:'type', p:'Переведи «врач»', a:'médecin'},
+        {t:'type', p:'Переведи «учитель»', a:'professeur'},
+        {t:'choice', p:'«Infirmière» — это…', a:'медсестра', o:['медсестра','врач','учитель','инженер']},
+        {t:'match', p:'Соедини', pairs:[['médecin','врач'],['professeur','учитель'],['ingénieur','инженер'],['commerçant','продавец']]}
+      ]},
+      { id:'l26', name:'Работа', icon:'💼', xp:10, q:[
+        {t:'type', p:'Переведи «работа»', a:'travail'},
+        {t:'type', p:'Переведи «офис»', a:'bureau'},
+        {t:'gap', p:'Вставь', text:"Je vais au ___ tous les jours.", word:'bureau', hint:'офис'},
+        {t:'match', p:'Соедини', pairs:[['travail','работа'],['bureau','офис'],['réunion','встреча'],['salaire','зарплата']]}
+      ]}
+    ]},
+  { id:'u13', title:'Цвета и прилагательные', color:'#7a381f',
+    lessons:[
+      { id:'l27', name:'Цвета', icon:'🎨', xp:10, q:[
+        {t:'type', p:'Переведи «красный»', a:'rouge'},
+        {t:'type', p:'Переведи «синий»', a:'bleu'},
+        {t:'choice', p:'«Vert» — это…', a:'зелёный', o:['зелёный','жёлтый','синий','красный']},
+        {t:'match', p:'Соедини', pairs:[['rouge','красный'],['bleu','синий'],['vert','зелёный'],['jaune','жёлтый'],['noir','чёрный']]}
+      ]},
+      { id:'l28', name:'Прилагательные', icon:'✨', xp:10, q:[
+        {t:'type', p:'Переведи «большой»', a:'grand'},
+        {t:'type', p:'Переведи «маленький»', a:'petit'},
+        {t:'match', p:'Соедини', pairs:[['grand','большой'],['petit','маленький'],['bon','хороший'],['beau','красивый']]}
+      ]}
     ]}
 ];
 
 const TOOLS = [
+  {id:'more', name:'Мотивация', icon:'🎯', desc:'цель · челлендж · напоминание', fn:'renderMotivation'},
+  {id:'prog', name:'Прогресс', icon:'📈', desc:'графики и статистика', fn:'renderProgressScreen'},
   {id:'dict', name:'Словарь', icon:'📚', desc:'все слова', fn:'renderDict'},
   {id:'conj', name:'Спряжения', icon:'🔤', desc:'глаголы', fn:'renderConj'},
   {id:'dial', name:'Фразы', icon:'💬', desc:'диалоги', fn:'renderDial'}
@@ -340,8 +523,32 @@ function updateHeader(){
   const s=document.querySelector('.hero .streak'); if(s) s.textContent='🔥 '+DATA.streak;
 }
 
-const DAILY_GOAL = 20;
-function dailyPct(){ return DATA.done>=DAILY_GOAL?1:Math.round(DATA.done/DAILY_GOAL*100); }
+function dailyPct(){ const g=DATA.goal||20; return DATA.done>=g?1:Math.round(DATA.done/g*100); }
+// ===== Ежедневный челлендж =====
+function challengeForDay(){
+  // детерминированная ротация по дню
+  const idx=Math.floor(Date.now()/86400000);
+  const types=[
+    {name:'Быстрая разминка', n:10, icon:'⚡'},
+    {name:'Пятнадцать слов', n:15, icon:'🎯'},
+    {name:'Мастерская тренировка', n:20, icon:'🔥'}
+  ];
+  return types[idx%types.length];
+}
+function getChallenge(){
+  const t=todayStr();
+  if(!DATA.challenge || DATA.challenge.date!==t){
+    const c=challengeForDay();
+    DATA.challenge={date:t, done:0, total:c.n, type:c.name, icon:c.icon};
+    save();
+  }
+  return DATA.challenge;
+}
+function bumpChallenge(n){
+  const ch=getChallenge();
+  ch.done=Math.min(ch.total, ch.done+(n||1));
+  save();
+}
 
 // ===== Главный экран: юниты =====
 function renderMenu(){
@@ -351,10 +558,13 @@ function renderMenu(){
     <div class="hero">
       <div class="top">
         <span class="xp">⚡ <span id="xpTop">${DATA.xp}</span></span>
-        <span class="streak">🔥 <span id="streakTop">${DATA.streak}</span></span>
+        <span style="display:flex;gap:8px;align-items:center">
+          <span class="streak" onclick="toggleTheme()" style="cursor:pointer" title="Светлая/тёмная тема">${(DATA.theme==='light')?'🌞':'🌙'}</span>
+          <span class="streak">🔥 <span id="streakTop">${DATA.streak}</span></span>
+        </span>
       </div>
       <h1>Французский</h1>
-      <div class="goal">Цель дня: ${DATA.done}/${DAILY_GOAL} · учись каждый день!</div>
+      <div class="goal">Цель дня: ${DATA.done}/${DATA.goal||20} · учись каждый день!</div>
       <div class="goalline"><div class="goalfill" style="width:${pct}%"></div></div>
     </div>
     ${UNITS.map(u=>`
@@ -393,14 +603,26 @@ let LS = { lesson:null, idx:0, correct:0, sel:null, matchSel:null, matchPairs:[]
 function startLesson(id){
   const all=allLessons(); const l=all.find(x=>x.id===id); if(!l) return;
   if(!isUnlocked(id)) return;
-  LS={ lesson:l, idx:0, correct:0, sel:null, matchSel:null, matchPairs:[], inp:null };
+  // перемешиваем порядок заданий, чтобы урок каждый раз шёл по-разному
+  const qList=shuffle(l.q.slice());
+  LS={ lesson:l, queue:qList, idx:0, wrong:[], correct:0, sel:null, matchSel:null, matchPairs:[], inp:null };
   showQuestion();
 }
 function showQuestion(){
-  if(LS.idx>=LS.lesson.q.length){ finishLesson(); return; }
-  const q=LS.lesson.q[LS.idx];
+  const total=LS.queue.length;
+  if(LS.idx>=total){
+    // если были ошибки — повторяем их, иначе урок завершён
+    if(LS.wrong.length){
+      const wrongOnly=LS.wrong.slice();
+      LS.wrong=[];
+      LS.queue=shuffle(wrongOnly);
+      LS.idx=0;
+      LS.reviewing=true;
+    } else { finishLesson(); return; }
+  }
+  const q=LS.queue[LS.idx];
   LS.sel=null; LS.matchSel=null; LS.matchPairs=[]; LS.inp=null;
-  const prog=Math.round(LS.idx/LS.lesson.q.length*100);
+  const prog=Math.round(LS.idx/total*100);
   let body='';
   if(q.t==='choice'){
     body=`<div class="qcard">
@@ -431,7 +653,7 @@ function showQuestion(){
       ${LS.matchPairs.map((p,i)=>`<div class="mtile" data-i="${i}" onclick="pickMatch(${i})"><span>${p.v}</span><span class="ch">${p.matched?'✓':''}</span></div>`).join('')}
     </div>`;
   }
-  render(`<div class="topbar"><button class="back" onclick="leaveLesson()">✕</button><h2>${LS.lesson.name}</h2><span>${LS.idx+1}/${LS.lesson.q.length}</span></div>
+  render(`<div class="topbar"><button class="back" onclick="leaveLesson()">✕</button><h2>${LS.lesson.name}${LS.reviewing?' · повтор':''}</h2><span>${LS.idx+1}/${LS.queue.length}</span></div>
     <div class="qprogress"><div class="qfill" style="width:${prog}%"></div></div>
     ${body}
     <div id="actionsArea"></div>
@@ -476,7 +698,7 @@ function pickMatch(i){
     const j=LS.matchSel;
     const a=LS.matchPairs[j], b=LS.matchPairs[i];
     // проверяем, образуют ли они пару (фр+ру)
-    const pair=LS.lesson.q[LS.idx].pairs;
+    const pair=LS.queue[LS.idx].pairs;
     const isPair=pair.some(p=>{ const s=new Set(p); return s.has(a.v)&&s.has(b.v); });
     if(isPair){
       a.matched=true; b.matched=true;
@@ -498,7 +720,7 @@ function checkMatch(){
   // автоматически отмечается по мере сопоставления
 }
 function checkAnswer(){
-  const q=LS.lesson.q[LS.idx];
+  const q=LS.queue[LS.idx];
   let user='';
   if(q.t==='choice') user=LS.sel||'';
   else if(q.t==='type'||q.t==='gap') user=(document.getElementById('fillin').value||'').trim().toLowerCase();
@@ -515,6 +737,8 @@ function checkAnswer(){
   const fb=document.getElementById('fb');
   if(ok){ correctNow(); }
   else{
+    if(!LS.wrong.some(w=>w===q)) LS.wrong.push(q);
+    recordWordError(q);
     fb.innerHTML=`<span class="fb-wrong">✖ Правильно: ${q.a}</span>`;
     if(q.t==='type'||q.t==='gap'){
       const inp=document.getElementById('fillin');
@@ -534,9 +758,11 @@ function checkAnswer(){
   }
 }
 function correctNow(){
-  const q=LS.lesson.q[LS.idx];
+  const q=LS.queue[LS.idx];
   LS.correct++;
   DATA.done++;
+  logActivity(1, 0);
+  bumpChallenge(1);
   const fb=document.getElementById('fb');
   fb.innerHTML=`<span class="fb-correct">✔ Верно!</span>`;
   if(q.t==='choice'){
@@ -562,6 +788,7 @@ function finishLesson(){
   DATA.completed[l.id]=true;
   DATA.stars[l.id]=3;
   DATA.xp+=l.xp;
+  logActivity(0, l.xp);
   save();
   showComplete(l.xp, l.name);
 }
@@ -608,6 +835,105 @@ function collectWords(){
 }
 function dedupe(a){ const m={}; const r=[]; a.forEach(x=>{ if(!m[x.fr]){m[x.fr]=1;r.push(x);} }); return r; }
 
+// ===== Прогресс =====
+function lastNDays(n){
+  const out=[];
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    out.push({key, rec:DATA.history[key]||{done:0,xp:0}});
+  }
+  return out;
+}
+function renderProgressScreen(){
+  updateStreak();
+  const words=collectWords();
+  const total=words.length;
+  const done=DATA.done; const xp=DATA.xp;
+  // график за 7 дней (ответов)
+  const week=lastNDays(7);
+  const maxDone=Math.max(1, ...week.map(d=>d.rec.done));
+  const bars=week.map(d=>{
+    const h=Math.round(d.rec.done/maxDone*70);
+    return `<div class="chartcol"><div class="bar" style="height:${h}px"></div><div class="barv">${d.rec.done}</div><div class="barlab">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][new Date(new Date().setDate(new Date().getDate()-(6-week.indexOf(d)))).getDay()]||''}</div></div>`;
+  });
+  // тепловая карта за 28 дней
+  const h28=lastNDays(28);
+  const heat=h28.map(d=>{
+    const v=d.rec.done;
+    let cls='h0'; if(v>=6) cls='h3'; else if(v>=3) cls='h2'; else if(v>=1) cls='h1';
+    const t=d.key;
+    return `<span class="hcell ${cls}" title="${t}: ${v}"></span>`;
+  }).join('');
+  // словарь частотности ошибок (топ)
+  const errList=Object.entries(DATA.wordErrors||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  render(`
+    <div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>📈 Прогресс</h2></div>
+    <div class="card">
+      <h2>Итого</h2>
+      <div class="stat"><span>Слов в словаре</span><b>${total}</b></div>
+      <div class="stat"><span>Правильных ответов</span><b>${done}</b></div>
+      <div class="stat"><span>Опыт (XP)</span><b>${xp}</b></div>
+      <div class="stat"><span>Серия дней</span><b>🔥 ${DATA.streak}</b></div>
+    </div>
+    <div class="card">
+      <h2>Активность за неделю</h2>
+      <div class="chart">${bars.join('')}</div>
+    </div>
+    <div class="card">
+      <h2>Последние 4 недели</h2>
+      <div class="heat">${heat}</div>
+      <div class="sub" style="margin-top:10px">чем ярче день, тем больше занятий</div>
+    </div>
+    ${errList.length?`<div class="card">
+      <h2>Сложные слова</h2>
+      <div class="wordlist">
+        ${errList.map(([k,v])=>`<div class="w"><div><span class="fr">${k}</span></div><span class="b">ошибок: ${v}</span></div>`).join('')}
+      </div>
+    </div>`:''}
+  `);
+}
+
+function renderMotivation(){
+  updateStreak();
+  const ch=getChallenge();
+  const goal=DATA.goal||20;
+  const chPct=Math.round(ch.done/ch.total*100);
+  const gPct=dailyPct();
+  render(`
+    <div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>🎯 Мотивация</h2></div>
+    <div class="card">
+      <h2>${ch.icon} Челлендж дня</h2>
+      <div class="big" style="font-size:22px">${ch.type}</div>
+      <div class="sub">${ch.done}/${ch.total} правильных ответов сегодня</div>
+      <div class="box-line"><div class="box-fill" style="width:${chPct}%"></div></div>
+      ${ch.done>=ch.total?'<div class="ok">✅ Челлендж пройден!</div>':''}
+    </div>
+    <div class="card">
+      <h2>🎯 Цель дня</h2>
+      <div class="sub">${DATA.done}/${goal} ответов · прогресс ${gPct}%</div>
+      <div class="box-line"><div class="box-fill" style="width:${gPct}%"></div></div>
+      <div class="row">
+        ${[10,20,30].map(n=>`<button class="secondary" onclick="setGoal(${n})" style="${DATA.goal===n?'border:2px solid var(--accent);':''}">${n}</button>`).join('')}
+      </div>
+      <div class="sub" style="margin-top:8px">выбери цель на день</div>
+    </div>
+    <div class="card">
+      <h2>🔔 Напоминание</h2>
+      <div class="sub">${DATA.remind?`Напоминание в <b>${DATA.remind}</b>`:'Выбери время — отправлю напоминание об уроке'}</div>
+      <div class="row">
+        ${[['Утро','09:00'],['Обед','13:00'],['Вечер','20:00']].map(([label,t])=>`<button class="secondary" onclick="setRemind('${t}')">${label} ${t}</button>`).join('')}
+      </div>
+      ${DATA.remind?`<div class="row"><button class="secondary" onclick="setRemind(null)">Выключить</button></div>`:''}
+    </div>
+  `);
+}
+function setGoal(n){ DATA.goal=n; save(); renderMotivation(); }
+function setRemind(t){
+  if(t==null) DATA.remind=null;
+  else DATA.remind=t;
+  save(); renderMotivation();
+}
 function renderConj(){
   render(`<div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>🔤 Спряжения</h2></div>
   <div class="card">
