@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Французский 🇫🇷</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#273549;
+    --txt:#f1f5f9; --sub:#94a3b8; --accent:#3b82f6; --accent2:#60a5fa;
+    --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+    --radius:16px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--txt); min-height:100vh;
+    padding-bottom:calc(60px + env(safe-area-inset-bottom));
+  }
+  header{
+    position:sticky; top:0; z-index:20;
+    background:rgba(15,23,42,.92); backdrop-filter:blur(8px);
+    padding:14px 16px calc(12px + env(safe-area-inset-top));
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid #1e293b;
+  }
+  header h1{font-size:18px; margin:0; font-weight:700;}
+  header .streak{font-size:13px; color:var(--amber); font-weight:600;}
+  main{padding:14px 16px;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .mbtn{
+    background:var(--card); border:none; color:var(--txt); text-align:left;
+    border-radius:var(--radius); padding:18px 16px; font-size:15px; font-weight:600;
+    cursor:pointer; display:flex; flex-direction:column; gap:6px;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+  .mbtn:active{transform:scale(.97);}
+  .mbtn .emoji{font-size:26px;}
+  .mbtn .desc{font-size:12px; color:var(--sub); font-weight:400;}
+  .card{
+    background:var(--card); border-radius:var(--radius); padding:20px 18px;
+    margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+  .card h2{margin:0 0 14px; font-size:17px;}
+  .center{text-align:center;}
+  .big{font-size:30px; font-weight:800; margin:8px 0;}
+  .sub{color:var(--sub); font-size:13px;}
+  .translit{color:var(--accent2); font-size:15px;}
+  button.primary, a.primary{
+    background:var(--accent); color:#fff; border:none; border-radius:12px;
+    padding:14px; font-size:15px; font-weight:600; cursor:pointer; width:100%;
+    display:block; text-align:center; text-decoration:none;
+  }
+  button.primary:active{transform:scale(.98);}
+  button.secondary{
+    background:var(--card2); color:var(--txt); border:none; border-radius:12px;
+    padding:12px; font-size:14px; cursor:pointer;
+  }
+  .row{display:flex; gap:10px; margin-top:12px;}
+  .row > *{flex:1;}
+  .badge{display:inline-block; background:var(--card2); border-radius:999px; padding:4px 10px; font-size:12px; color:var(--sub);}
+  .wordlist .w{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 4px; border-bottom:1px solid #263449;
+  }
+  .wordlist .w:last-child{border-bottom:none;}
+  .wordlist .fr{font-weight:600;}
+  .wordlist .ru{color:var(--sub); font-size:13px;}
+  .wordlist .b{color:var(--accent2); font-size:12px;}
+  .stat{display:flex; justify-content:space-between; padding:10px 4px; border-bottom:1px solid #263449; font-size:14px;}
+  .stat:last-child{border-bottom:none;}
+  .stat b{color:var(--accent2);}
+  input[type=text]{
+    width:100%; background:var(--card2); border:1px solid #334155; color:var(--txt);
+    border-radius:12px; padding:13px; font-size:15px; margin-bottom:10px;
+  }
+  .banner{background:var(--red); color:#fff; padding:12px; border-radius:12px; margin-bottom:14px; font-size:14px;}
+  .ok{background:var(--green); color:#062; padding:12px; border-radius:12px; margin:12px 0; font-weight:600; text-align:center;}
+  .box-line{height:8px; background:var(--card2); border-radius:999px; overflow:hidden; margin:10px 0;}
+  .box-fill{height:100%; background:var(--accent); border-radius:999px; transition:width .3s;}
+  .feedback{font-size:14px; font-weight:600; min-height:20px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🇫🇷 Французский</h1>
+  <span class="streak">🔥 <span id="streakNum">0</span></span>
+</header>
+
+<main id="app"></main>
+
+<script>
+// ===== Telegram Mini App API =====
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  try { tg.setHeaderColor('#0f172a'); tg.setBackgroundColor('#0f172a'); } catch(e){}
+}
+
+// ===== Сохранение данных (localStorage) =====
+const LS_KEY = 'french_app_v1';
+function loadData(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return { words: null, learned: 0, done: 0, streak: 1, lastDay: null };
+}
+const DATA = loadData();
+function save(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(DATA)); } catch(e){}
+  updateStreak();
+}
+
+// ===== Встроенный словарь =====
+const BASE = [
+  ["bonjour","здравствуйте, добрый день","бонжур"], ["au revoir","до свидания","о ревуар"],
+  ["merci","спасибо","мерси"], ["s'il vous plaît","пожалуйста","силь ву пле"],
+  ["oui","да","уи"], ["non","нет","нон"],
+  ["parler","говорить","парле"], ["manger","есть, кушать","манже"],
+  ["boire","пить","буар"], ["dormir","спать","дормир"],
+  ["aimer","любить","эме"], ["apprendre","учить, узнавать","апрандр"],
+  ["travailler","работать","травае"], ["être","быть","этр"],
+  ["avoir","иметь","авуар"], ["aller","идти, ехать","але"],
+  ["faire","делать","фэр"], ["voir","видеть","вуар"],
+  ["écouter","слушать","экуте"], ["regarder","смотреть","регарде"],
+  ["livre","книга","ливр"], ["maison","дом","мезон"],
+  ["ville","город","виль"], ["ami","друг","ами"],
+  ["famille","семья","фамий"], ["jour","день","жур"],
+  ["nuit","ночь","нюи"], ["temps","время / погода","тан"],
+  ["eau","вода","о"], ["pain","хлеб","пэн"],
+  ["fromage","сыр","фромаж"], ["café","кофе / кафе","кафе"],
+  ["vin","вино","вэн"], ["école","школа","эколь"],
+  ["mer","море","мэр"], ["soleil","солнце","солей"],
+  ["chien","собака","шьен"], ["chat","кот","ша"],
+  ["bon","хороший","бон"], ["grand","большой","гран"],
+  ["petit","маленький","пти"], ["je","я","жё"],
+  ["tu","ты","тю"], ["il","он","иль"],
+  ["elle","она","эль"], ["nous","мы","ну"],
+  ["vous","вы","ву"], ["et","и","э"],
+  ["mais","но","мэ"], ["avec","с (с кем-то)","авэк"],
+  ["dans","в (внутри)","дан"], ["pour","для, чтобы","пур"],
+  ["très","очень","трэ"], ["beaucoup","много","боку"],
+  ["comment","как","коман"], ["pourquoi","почему","пуркуа"]
+];
+function getWords(){
+  if (!DATA.words){
+    DATA.words = BASE.map((w,i)=>({id:'b'+i, fr:w[0], ru:w[1], translit:w[2], box:0}));
+    save();
+  }
+  return DATA.words;
+}
+function addUserWords(){ return DATA.words.filter(w=>!w.id.startsWith('b')); }
+
+// ===== Прогресс / серия =====
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function updateStreak(){
+  const today = todayStr();
+  if (DATA.lastDay && DATA.lastDay !== today){
+    const prev = new Date(DATA.lastDay);
+    const diff = (new Date(today) - prev)/86400000;
+    if (diff === 1) DATA.streak++;
+    else DATA.streak = 1;
+    DATA.lastDay = today; save();
+  } else if (!DATA.lastDay){
+    DATA.lastDay = today; save();
+  }
+  const el = document.getElementById('streakNum');
+  if (el) el.textContent = DATA.streak;
+}
+
+// ===== Вспомогательные =====
+const app = document.getElementById('app');
+function render(html){ app.innerHTML = html; window.scrollTo(0,0); }
+function head(){ return `<h2></h2>`; }
+function backBtn(){ return `</div><div class="row"><button class="secondary" onclick="renderMenu()">← Меню</button></div>`; }
+
+const IRREGULAR = {
+  "être":"je suis · tu es · il/elle est · nous sommes · vous êtes · ils/elles sont",
+  "avoir":"j'ai · tu as · il/elle a · nous avons · vous avez · ils/elles ont",
+  "aller":"je vais · tu vas · il/elle va · nous allons · vous allez · ils/elles vont",
+  "faire":"je fais · tu fais · il/elle fait · nous faisons · vous faites · ils/elles font",
+  "venir":"je viens · tu viens · il/elle vient · nous venons · vous venez · ils/elles viennent",
+  "dire":"je dis · tu dis · il/elle dit · nous disons · vous dites · ils/elles disent",
+  "pouvoir":"je peux · tu peux · il/elle peut · nous pouvons · vous pouvez · ils/elles peuvent",
+  "vouloir":"je veux · tu veux · il/elle veut · nous voulons · vous voulez · ils/elles veulent",
+  "prendre":"je prends · tu prends · il/elle prend · nous prenons · vous prenez · ils/elles prennent"
+};
+function conjugate(v){
+  v = v.trim().toLowerCase().replace(/'+$/,'');
+  if (IRREGULAR[v]) return IRREGULAR[v];
+  if (v.endsWith('er') && v.length>2){ const s=v.slice(0,-2); return `je ${s}e · tu ${s}es · il/elle ${s}e · nous ${s}ons · vous ${s}ez · ils/elles ${s}ent`; }
+  if (v.endsWith('ir') && v.length>2){ const s=v.slice(0,-2); return `je ${s}is · tu ${s}is · il/elle ${s}it · nous ${s}issons · vous ${s}issez · ils/elles ${s}issent`; }
+  if (v.endsWith('re') && v.length>2){ const s=v.slice(0,-2); return `je ${s}s · tu ${s}s · il/elle ${s} · nous ${s}sons · vous ${s}sez · ils/elles ${s}sent`; }
+  return null;
+}
+
+// ===== Меню =====
+function renderMenu(){
+  updateStreak();
+  const words = getWords();
+  render(`
+    <div class="grid">
+      <button class="mbtn" onclick="renderCards()"><span class="emoji">🧠</span>Карточки<span class="desc">интервальное повторение</span></button>
+      <button class="mbtn" onclick="renderExercise()"><span class="emoji">✏️</span>Упражнения<span class="desc">тест на перевод</span></button>
+      <button class="mbtn" onclick="renderWords()"><span class="emoji">📚</span>Словарь<span class="desc">${words.length} слов</span></button>
+      <button class="mbtn" onclick="renderConj()"><span class="emoji">🔤</span>Спряжения<span class="desc">глаголы</span></button>
+      <button class="mbtn" onclick="renderDialogues()"><span class="emoji">💬</span>Диалоги<span class="desc">фразы для общения</span></button>
+      <button class="mbtn" onclick="renderProgress()"><span class="emoji">📊</span>Прогресс<span class="desc">статистика</span></button>
+      <button class="mbtn" onclick="renderAddWord()"><span class="emoji">➕</span>Свои слова<span class="desc">добавить новое</span></button>
+      <button class="mbtn" onclick="renderHelp()"><span class="emoji">ℹ️</span>Помощь<span class="desc">как пользоваться</span></button>
+    </div>
+  `);
+}
+
+// ===== Карточки =====
+let cardQueue = [];
+function renderCards(){
+  const words = getWords().filter(w=>w.box < 5);
+  if (!words.length){
+    render(`<div class="card center"><h2>Поздравляем! 🎉</h2><p class="sub">Все слова усвоены. Добавь новые или приходи завтра.</p>${backBtn()}`);
+    return;
+  }
+  cardQueue = [...words].sort((a,b)=>a.box-b.box || Math.random()-0.5);
+  showCard();
+}
+function showCard(){
+  if (!cardQueue.length){ renderMenu(); return; }
+  const w = cardQueue.shift();
+  render(`
+    <div class="card">
+      <div class="badge">Уровень ${w.box}/5</div>
+      <div class="center">
+        <div class="big">${w.fr}</div>
+        <div class="translit">${w.translit}</div>
+      </div>
+    </div>
+    <button class="primary" onclick="revealCard('${w.id}')">Показать перевод</button>
+    <div class="row"><button class="secondary" onclick="renderMenu()">← Меню</button></div>
+  `);
+}
+function revealCard(id){
+  const w = getWords().find(x=>x.id===id); if(!w) return;
+  const top = document.querySelector('.btnarea');
+  top.innerHTML =
+    `<div class="card center"><div class="big">${w.ru}</div><div class="sub">${w.translit}</div></div>
+     <div class="row"><button class="secondary" onclick="rateCard('${id}',1)">🤔 Не уверен</button>
+     <button style="flex:1;background:var(--green);color:#fff;border:none;padding:12px;border-radius:12px;font-weight:600" onclick="rateCard('${id}',0)">😄 Знаю</button></div>`;
+}
+function rateCard(id, again){
+  const w = getWords().find(x=>x.id===id); if(!w) return;
+  w.box = again ? 0 : Math.min(w.box+1, 5);
+  DATA.done++; if(!again) DATA.learned++;
+  save();
+  showCard();
+}
+
+// ===== Упражнения =====
+let exState = null;
+function renderExercise(){
+  exState = { dir: Math.random()<0.5?'fr2ru':'ru2fr', answer:'', wordId:null };
+  render(`
+    <div id="qbox"></div>
+    <div class="row"><button class="secondary" onclick="renderMenu()">← Меню</button></div>
+  `);
+  setTimeout(nextExercise, 0);
+}
+function nextExercise(){
+  const words = getWords(); if(!words.length){ renderMenu(); return; }
+  const w = words[Math.floor(Math.random()*words.length)];
+  exState.wordId = w.id;
+  exState.dir = Math.random()<0.5?'fr2ru':'ru2fr';
+  const q = exState.dir==='fr2ru' ? w.fr : w.ru;
+  exState.answer = (exState.dir==='fr2ru'? w.ru : w.fr).toLowerCase();
+  const hint = exState.dir==='fr2ru' ? w.translit : '';
+  document.getElementById('qbox').innerHTML =
+    `<div class="card center"><h2>Переведи:</h2><div class="big">🇫🇷 ${q}</div>${hint?'<div class="translit">'+hint+'</div>':''}</div>
+     <input type="text" id="exinput" placeholder="Твой ответ…">
+     <button class="primary" onclick="checkEx()">Проверить</button>
+     <div class="feedback" id="exfb"></div>`;
+  document.getElementById('exinput').focus();
+}
+function checkEx(){
+  const input = document.getElementById('exinput');
+  const val = input.value.trim().toLowerCase();
+  const fb = document.getElementById('exfb');
+  if (val === exState.answer){
+    DATA.done++; save();
+    fb.innerHTML = '<span style="color:var(--green)">✅ Правильно!</span>';
+  } else {
+    fb.innerHTML = `❌ Правильно: <b style="color:var(--amber)">${exState.answer}</b>`;
+  }
+  setTimeout(nextExercise, 1400);
+}
+
+// ===== Словарь =====
+function renderWords(){
+  const words = getWords();
+  render(`
+    <div class="card"><h2>📚 Словарь (${words.length})</h2>
+      <div class="wordlist">
+        ${words.map(w=>`<div class="w">
+          <div><span class="fr">${w.fr}</span> <span class="ru">— ${w.ru}</span></div>
+          <span class="b">ур.${w.box}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+    ${backBtn()}
+  `);
+}
+
+// ===== Спряжения =====
+function renderConj(){
+  render(`
+    <div class="card"><h2>🔤 Спряжения</h2>
+      <p class="sub">Выбери глагол или введи свой (parler, finir, vendre…)</p>
+      <div class="grid">
+        ${Object.keys(IRREGULAR).map(v=>`<button class="mbtn" onclick="showConj('${v}')"><span class="emoji">📖</span>${v}</button>`).join('')}
+      </div>
+      <input type="text" id="conjin" placeholder="Введи глагол…" onkeydown="if(event.key==='Enter')conjInput()">
+      <button class="primary" onclick="conjInput()">Спрягать</button>
+      <div id="conjout"></div>
+    </div>
+    ${backBtn()}
+  `);
+}
+function showConj(v){
+  const res = conjugate(v);
+  document.getElementById('conjout').innerHTML = `<div class="card center"><div class="big">${v}</div><div class="sub">${res}</div></div>`;
+}
+function conjInput(){
+  const v = document.getElementById('conjin').value;
+  const res = conjugate(v);
+  if (!res){ document.getElementById('conjout').innerHTML='<div class="banner">Не распознал глагол. Попробуй, напр.: chanter, finir, vendre</div>'; return; }
+  showConj(v);
+}
+
+// ===== Диалоги =====
+const DIALOGUES = [
+  {name:"💬 Знакомство", text:"— Bonjour ! Comment t'appelles-tu ?\n— Je m'appelle Anna. Et toi ?\n— Moi, c'est Marc. Enchanté !", ru:"— Здравствуй! Как тебя зовут?\n— Меня зовут Анна. А ты?\n— Я Марк. Очень приятно!"},
+  {name:"☕ В кафе", text:"— Bonjour, je voudrais un café, s'il vous plaît.\n— Avec du lait ?\n— Non, noir, merci.", ru:"— Здравствуйте, я хотел бы кофе, пожалуйста.\n— С молоком?\n— Нет, чёрный, спасибо."},
+  {name:"🗺 Спросить дорогу", text:"— Excusez-moi, où est la gare ?\n— C'est tout droit, puis à gauche.\n— Merci beaucoup !", ru:"— Извините, где вокзал?\n— Это прямо, потом налево.\n— Большое спасибо!"}
+];
+function renderDialogues(){
+  render(`
+    <div class="card"><h2>💬 Диалоги</h2>
+      ${DIALOGUES.map((d,i)=>`<div class="wordlist"><div class="w" style="cursor:pointer" onclick="showDialogue(${i})"><span class="fr">${d.name}</span><span class="b">открыть →</span></div></div>`).join('')}
+    </div>
+    ${backBtn()}
+  `);
+}
+function showDialogue(i){
+  const d = DIALOGUES[i];
+  render(`
+    <div class="card"><h2>${d.name}</h2><div class="sub" style="font-size:15px;line-height:1.7;white-space:pre-line">${d.text}</div></div>
+    <div class="card"><h2>🇷🇺 Перевод</h2><div class="sub" style="white-space:pre-line">${d.ru}</div></div>
+    ${backBtn()}
+  `);
+}
+
+// ===== Прогресс =====
+function renderProgress(){
+  const words = getWords();
+  const learned = words.filter(w=>w.box>=3).length;
+  const total = words.length;
+  const pct = Math.round(learned/total*100);
+  render(`
+    <div class="card"><h2>📊 Твой прогресс</h2>
+      <div class="stat"><span>Слов в словаре</span><b>${total}</b></div>
+      <div class="stat"><span>Уверенно знаешь</span><b>${learned}</b></div>
+      <div class="stat"><span>Правильных ответов</span><b>${DATA.done}</b></div>
+      <div class="stat"><span>Серия занятий</span><b>🔥 ${DATA.streak} дн.</b></div>
+      <div class="box-line"><div class="box-fill" style="width:${pct}%"></div></div>
+      <div class="sub">Освоено ${pct}% словаря</div>
+    </div>
+    ${backBtn()}
+  `);
+}
+
+// ===== Добавить слово =====
+function renderAddWord(){
+  render(`
+    <div class="card"><h2>➕ Новое слово</h2>
+      <input type="text" id="nf" placeholder="Слово (напр. enfant)">
+      <input type="text" id="nr" placeholder="Перевод (напр. ребёнок)">
+      <input type="text" id="nt" placeholder="Чтение (необязательно: анфан)">
+      <button class="primary" onclick="addWord()">Сохранить</button>
+      <div id="addfb"></div>
+    </div>
+    ${backBtn()}
+  `);
+}
+function addWord(){
+  const f = document.getElementById('nf').value.trim();
+  const r = document.getElementById('nr').value.trim();
+  if(!f || !r){ document.getElementById('addfb').innerHTML='<div class="banner">Заполни слово и перевод.</div>'; return; }
+  getWords().push({ id:'u'+Date.now(), fr:f, ru:r, translit:document.getElementById('nt').value.trim(), box:0 });
+  DATA.done++; save();
+  document.getElementById('addfb').innerHTML='<div class="ok">✅ Добавлено!</div>';
+  document.getElementById('nf').value=''; document.getElementById('nr').value=''; document.getElementById('nt').value='';
+}
+
+// ===== Помощь =====
+function renderHelp(){
+  render(`
+    <div class="card"><h2>ℹ️ Как пользоваться</h2>
+      <div class="wordlist">
+        <div class="w"><div><b>🧠 Карточки</b></div><div class="sub">вспоминай перевод, «Знаю» повышает уровень</div></div>
+        <div class="w"><div><b>✏️ Упражнения</b></div><div class="sub">перевод в обе стороны</div></div>
+        <div class="w"><div><b>🔤 Спряжения</b></div><div class="sub">введи глагол — получишь спряжение</div></div>
+        <div class="w"><div><b>💬 Диалоги</b></div><div class="sub">полезные фразы для общения</div></div>
+      </div>
+    </div>
+    ${backBtn()}
+  `);
+}
+
+// ===== Запуск =====
+renderMenu();
+</script>
+</body>
+</html>
