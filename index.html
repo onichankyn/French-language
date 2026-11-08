@@ -8,37 +8,43 @@
 <style>
   @keyframes fadeUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
   @keyframes pop{0%{transform:scale(.92); opacity:0;} 100%{transform:scale(1); opacity:1;}}
-  @keyframes glow{0%,100%{box-shadow:0 0 18px rgba(59,130,246,.35);} 50%{box-shadow:0 0 30px rgba(139,92,246,.55);}}
+  @keyframes glow{0%,100%{box-shadow:0 0 18px rgba(232,133,61,.35);} 50%{box-shadow:0 0 30px rgba(224,90,61,.55);}}
   :root{
-    --bg:#0b1020; --card:#1a2236; --card2:#232d47;
-    --txt:#eef2ff; --sub:#94a3b8; --accent:#3b82f6; --accent2:#8b5cf6;
-    --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+    --bg:#1b120c; --bgsoft:#2a1d13; --card:#2c1f16; --card2:#3b2a1d;
+    --txt:#faf3e7; --sub:#d9b98c; --accent:#e8853d; --accent2:#f2b04c;
+    --green:#82b356; --red:#e55b53; --amber:#f2b04c;
     --radius:20px;
-    --grad:linear-gradient(135deg,#3b82f6,#8b5cf6);
+    --grad:linear-gradient(135deg,#e8853d,#e05a3d);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:radial-gradient(120% 80% at 20% 0%,#15202f 0%,var(--bg) 55%),var(--bg);
+    background:radial-gradient(120% 80% at 20% 0%,#33220f 0%,var(--bg) 55%),var(--bg);
     color:var(--txt); min-height:100vh; overflow-x:hidden;
     padding-bottom:calc(60px + env(safe-area-inset-bottom));
   }
-  .banner-wrap{position:relative; margin:0; padding:0; height:120px; overflow:hidden;}
-  .banner-wrap img{width:100%; height:120px; object-fit:cover; display:block;}
-  .banner-wrap .ovl{
-    position:absolute; inset:0;
-    background:linear-gradient(90deg,rgba(11,16,32,.35) 0%,rgba(11,16,32,0) 55%);
+  .banner-wrap{
+    position:relative; margin:0; padding:0; height:118px; overflow:hidden;
+    background:linear-gradient(115deg,#3a2412 0%,#6b3417 45%,#a34a1f 100%);
   }
+  .banner-wrap::before{content:'🇫🇷'; position:absolute; right:8%; top:50%; transform:translateY(-50%); font-size:64px; filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));}
+  .banner-wrap::after{
+    content:''; position:absolute; inset:0;
+    background:
+      radial-gradient(120% 120% at 85% 40%, rgba(255,205,130,.22) 0%, transparent 55%),
+      linear-gradient(90deg, rgba(27,18,12,.0) 0%, rgba(27,18,12,.35) 100%);
+  }
+  .banner-wrap .ovl{position:absolute; inset:0; background:linear-gradient(90deg,transparent 30%,rgba(20,12,6,.35) 100%);}
   header{
     position:relative; z-index:10; background:var(--bg);
-    padding:14px 16px 10px;
+    padding:13px 16px 10px;
     display:flex; align-items:center; justify-content:space-between;
   }
-  header h1{font-size:19px; margin:0; font-weight:800; letter-spacing:.3px;}
+  header h1{font-size:19px; margin:0; font-weight:800; letter-spacing:.3px; color:var(--txt);}
   header .streak{
-    font-size:14px; color:var(--amber); font-weight:700;
-    background:rgba(245,158,11,.12); padding:6px 12px; border-radius:999px;
+    font-size:14px; color:var(--accent2); font-weight:700;
+    background:rgba(242,176,76,.14); padding:6px 12px; border-radius:999px;
   }
   main{padding:16px;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
@@ -57,7 +63,7 @@
   .mbtn .desc{font-size:12px; color:var(--sub); font-weight:500;}
   .mbtn::after{
     content:''; position:absolute; top:0; right:0; width:90px; height:90px; border-radius:50%;
-    background:var(--grad); opacity:.15; filter:blur(18px); transform:translate(20%,-30%);
+    background:var(--grad); opacity:.18; filter:blur(18px); transform:translate(20%,-30%);
   }
   .card{
     background:var(--card); border:1px solid rgba(255,255,255,.06);
@@ -69,15 +75,15 @@
   .center{text-align:center;}
   .big{font-size:32px; font-weight:800; margin:10px 0;}
   .sub{color:var(--sub); font-size:13px;}
-  .translit{color:var(--accent2); font-size:16px;}
+  .translit{color:#f0a85a; font-size:16px;}
   button.primary, a.primary{
     background:var(--grad); color:#fff; border:none; border-radius:15px;
     padding:16px; font-size:16px; font-weight:700; cursor:pointer; width:100%;
     display:block; text-align:center; text-decoration:none;
-    box-shadow:0 6px 20px rgba(59,130,246,.35);
+    box-shadow:0 6px 20px rgba(232,133,61,.35);
     transition:transform .15s, box-shadow .2s;
   }
-  button.primary:hover{box-shadow:0 8px 26px rgba(59,130,246,.5);}
+  button.primary:hover{box-shadow:0 8px 26px rgba(232,133,61,.5);}
   button.primary:active{transform:scale(.97);}
   button.secondary{
     background:var(--card2); color:var(--txt); border:none; border-radius:13px;
@@ -86,8 +92,8 @@
   .row{display:flex; gap:10px; margin-top:14px;}
   .row > *{flex:1;}
   .badge{
-    display:inline-block; background:rgba(139,92,246,.15); border-radius:999px;
-    padding:5px 12px; font-size:12px; color:var(--accent2); font-weight:600;
+    display:inline-block; background:rgba(242,176,76,.16); border-radius:999px;
+    padding:5px 12px; font-size:12px; color:#f0a85a; font-weight:600;
   }
   .wordlist .w{
     display:flex; justify-content:space-between; align-items:center;
@@ -97,7 +103,7 @@
   .wordlist .fr{font-weight:700;}
   .wordlist .ru{color:var(--sub); font-size:13px;}
   .wordlist .b{
-    color:var(--accent2); font-size:12px; background:rgba(139,92,246,.1);
+    color:#f0a85a; font-size:12px; background:rgba(242,176,76,.12);
     padding:3px 9px; border-radius:999px; font-weight:600;
   }
   .stat{display:flex; justify-content:space-between; padding:11px 4px; border-bottom:1px solid rgba(255,255,255,.06); font-size:15px;}
@@ -110,10 +116,14 @@
   }
   input[type=text]:focus{border-color:var(--accent);}
   .banner{background:var(--red); color:#fff; padding:12px; border-radius:12px; margin-bottom:14px; font-size:14px;}
-  .ok{background:var(--green); color:#0a2f18; padding:12px; border-radius:12px; margin:12px 0; font-weight:700; text-align:center;}
+  .ok{background:var(--green); color:#16220b; padding:12px; border-radius:12px; margin:12px 0; font-weight:700; text-align:center;}
   .box-line{height:9px; background:var(--card2); border-radius:999px; overflow:hidden; margin:12px 0;}
   .box-fill{height:100%; background:var(--grad); border-radius:999px; transition:width .4s;}
   .feedback{font-size:15px; font-weight:700; min-height:22px;}
+  .green-btn{
+    flex:1; background:var(--grad); color:#fff; border:none; padding:13px 12px;
+    border-radius:13px; font-weight:700; font-size:14px;
+  }
   .hero-title{
     font-size:20px; font-weight:800; margin:6px 0 2px;
     background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
@@ -122,7 +132,6 @@
 </head>
 <body>
 <div class="banner-wrap">
-  <img src="french-banner.jpg" alt="Французский">
   <div class="ovl"></div>
 </div>
 <header>
@@ -293,7 +302,7 @@ function revealCard(id){
   top.innerHTML =
     `<div class="card center"><div class="big">${w.ru}</div><div class="sub">${w.translit}</div></div>
      <div class="row"><button class="secondary" onclick="rateCard('${id}',1)">🤔 Не уверен</button>
-     <button style="flex:1;background:var(--green);color:#fff;border:none;padding:12px;border-radius:12px;font-weight:600" onclick="rateCard('${id}',0)">😄 Знаю</button></div>`;
+     <button class="green-btn" onclick="rateCard('${id}',0)">😄 Знаю</button></div>`;
 }
 function rateCard(id, again){
   const w = getWords().find(x=>x.id===id); if(!w) return;
