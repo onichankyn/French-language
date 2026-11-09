@@ -51,8 +51,9 @@
   .lesson:active{transform:scale(.98);}
   .lesson:last-child{margin-bottom:0;}
   .lesson .icon{width:46px; height:46px; min-width:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px;}
-  .lesson.locked{opacity:.55; cursor:not-allowed;}
-  .lesson.locked .icon{background:var(--card2);}
+  .lesson.locked{opacity:.8; cursor:not-allowed;}
+  .lesson.locked .icon{background:rgba(242,176,76,.16); filter:grayscale(.3); border:1px solid rgba(242,176,76,.3);}
+  .lesson.locked .nm{color:var(--sub);}
   .lesson.passed .icon{background:rgba(127,178,87,.2);}
   .lesson.open .icon{background:var(--grad); color:#fff; animation:pulse 2s infinite;}
   .lesson .info{flex:1;}
@@ -218,10 +219,29 @@ function pullCloud(){
 window.addEventListener('DOMContentLoaded', ()=>{ if(tg) pullCloud(); });
 
 // ===== Озвучка французских слов (Web Speech API) =====
+let frVoiceChecked=false, frVoiceWarned=false;
+function hasFrenchVoice(){
+  if(!('speechSynthesis' in window)) return false;
+  const voices=window.speechSynthesis.getVoices();
+  return voices.some(v=>v.lang.toLowerCase().startsWith('fr'));
+}
+function maybeWarnVoice(){
+  frVoiceChecked=true;
+  if(frVoiceWarned) return;
+  if(!hasFrenchVoice()){
+    frVoiceWarned=true;
+    // короткое уведомление, без навязчивости
+    try{
+      if(tg && tg.showPopup){ tg.showPopup({title:'🔊 Озвучка', message:'На этом устройстве нет французского голоса — установите его в настройках речи, чтобы слышать правильное произношение.', buttons:[{type:'ok', text:'Ок'}]}); }
+      else if(overlayRoot){ overlayRoot.innerHTML=`<div class="overlay"><div class="complete"><h2>🔊 Озвучка</h2><p class="sub">На этом устройстве нет французского голоса. Установите его в настройках речи системы, чтобы слышать правильное произношение.</p><div class="row"><button class="btn-done" onclick="overlayRoot.innerHTML=''">Ок</button></div></div></div>`; }
+    }catch(e){}
+  }
+}
 function speak(text){
   if(!text) return;
   try{
     if(!('speechSynthesis' in window)){ return; }
+    if(!frVoiceChecked) maybeWarnVoice();
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     u.lang='fr-FR';
@@ -235,6 +255,19 @@ function speak(text){
 }
 function speakHtmlAttr(text){
   return `onclick="event.stopPropagation();speak(${JSON.stringify(text)})"`;
+}
+// возвращает французское слово для озвучки после ответа
+function answerTextToSpeak(q){
+  if(!q) return null;
+  const latin=/^[a-zA-ZàâçéèêëîïôùûüœÇÊ''-]+( [a-zA-ZàâçéèêëîïôùûüœÇÊ''-]+)*$/;
+  if(q.t==='type'||q.t==='gap'){
+    const w=q.word||q.a;
+    if(typeof w==='string' && latin.test(w.trim())) return w.trim();
+  } else if(q.t==='choice'){
+    if(q.q && latin.test(q.q.trim())) return q.q.trim();
+    if(q.a && latin.test(q.a.trim())) return q.a.trim();
+  }
+  return null;
 }
 // если список голосов загружается асинхронно — перечитываем при готовности
 if('speechSynthesis' in window){
@@ -797,6 +830,9 @@ function correctNow(){
   DATA.done++;
   logActivity(1, 0);
   bumpChallenge(1);
+  // озвучиваем правильный французский ответ
+  const voiced = answerTextToSpeak(q);
+  if(voiced) setTimeout(()=>speak(voiced), 250);
   const fb=document.getElementById('fb');
   fb.innerHTML=`<span class="fb-correct">✔ Верно!</span>`;
   if(q.t==='choice'){
@@ -924,7 +960,7 @@ function renderProgressScreen(){
       <div class="wordlist">
         ${errList.map(([k,v])=>`<div class="w"><div><span class="fr">${k}</span></div><span class="b">ошибок: ${v}</span></div>`).join('')}
       </div>
-    </div>`:''}
+    </div>`:'<div class="card"><h2>Сложные слова</h2><div class="ok" style="margin:0">🎉 Пока нет сложных слов — так держать!</div></div>'}
   `);
 }
 
