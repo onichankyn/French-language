@@ -172,6 +172,14 @@
   /* touch-оптимизация: не выделять текст при тапе, комфортные кнопки */
   .mbtn,.opt,.mtile,.lesson,.speakbtn,.primary,.secondary,.btn-actions button{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
   .opt,.mtile,.speakbtn{padding-top:14px; padding-bottom:14px;}
+  /* ===== Задание "построй предложение" ===== */
+  .buildbar{min-height:52px; background:var(--card2); border-radius:14px; padding:10px; margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; align-content:flex-start;}
+  .bchip{display:inline-block; background:var(--grad); color:#fff; border-radius:8px; padding:6px 10px; font-weight:700; cursor:pointer;}
+  .bchip.ok-build{background:var(--green); color:#16220b; cursor:default;}
+  .buildpool{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;}
+  .bword{background:var(--card2); border:1px solid rgba(255,255,255,.1); color:var(--txt); border-radius:10px; padding:12px 14px; font-size:16px; font-weight:700; cursor:pointer; transition:transform .1s;}
+  .bword:active{transform:scale(.95);}
+  .bword.used{opacity:.35; pointer-events:none; text-decoration:line-through;}
 </style>
 </head>
 <body>
@@ -338,7 +346,8 @@ const UNITS = [
         {t:'choice', p:'Как сказать «да»?', a:'oui', o:['oui','non','merci','bonjour']},
         {t:'type', p:'Напиши «пожалуйста» по-французски', a:"s'il vous plaît", aliases:["sil vous plait","s'il vous plait"]},
         {t:'gap', p:'Продолжи фразу: «Учиться» = …', text:'Je veux apprendre le ___.', word:'français', hint:'язык Франции'},
-        {t:'match', p:'Соедини пары', pairs:[['bonjour','привет'],['merci','спасибо'],['oui','да'],['non','нет']]}
+        {t:'match', p:'Соедини пары', pairs:[['bonjour','привет'],['merci','спасибо'],['oui','да'],['non','нет']]},
+        {t:'build', p:'Собери предложение: «Я хочу говорить по-французски»', a:'Je veux parler français'}
       ]},
       { id:'l2', name:'Знакомство', icon:'🤝', xp:10, q:[
         {t:'choice', p:'Как спросить «Как тебя зовут?»', a:'Comment tu t\'appelles ?', o:["Comment tu téléphones ?","Comment tu t'appelles ?","Comment ça marche ?","Où est la gare ?"]},
@@ -347,7 +356,8 @@ const UNITS = [
         {t:'gap', p:'Заполни пропуск', text:"___ m'appelle Anna.", word:'Je', hint:'я'},
         {t:'choice', p:'«Enchanté» значит…', a:'очень приятно', o:['очень приятно','до свидания','спасибо','извините']},
         {t:'type', p:'Напиши «герб городу»... нет: переведи «он»', a:'il'},
-        {t:'match', p:'Соедини пары', pairs:[['je','я'],['tu','ты'],['il','он'],['nous','мы']]}
+        {t:'match', p:'Соедини пары', pairs:[['je','я'],['tu','ты'],['il','он'],['nous','мы']]},
+        {t:'build', p:'Собери: «Я тебя люблю»', a:'Je t\'aime'}
       ]},
       { id:'l3', name:'Вопросы', icon:'❓', xp:15, q:[
         {t:'choice', p:'«Comment» значит…', a:'как', o:['как','где','почему','когда']},
@@ -366,7 +376,8 @@ const UNITS = [
         {t:'choice', p:'«Fromage» — это…', a:'сыр', o:['сыр','хлеб','мясо','рыба']},
         {t:'choice', p:'«Café» — это…', a:'кофе', o:['кофе','чай','вода','вино']},
         {t:'gap', p:'Вставь слово', text:'Je bois de l\'___.', word:'eau', hint:'вода'},
-        {t:'match', p:'Соедини', pairs:[['pain','хлеб'],['eau','вода'],['fromage','сыр'],['café','кофе']]}
+        {t:'match', p:'Соедини', pairs:[['pain','хлеб'],['eau','вода'],['fromage','сыр'],['café','кофе']]},
+        {t:'build', p:'Собери: «Я пью воду»', a:'Je bois de l\'eau'}
       ]},
       { id:'l5', name:'Напитки', icon:'☕', xp:10, q:[
         {t:'type', p:'Переведи «вино»', a:'vin'},
@@ -665,6 +676,9 @@ function renderMenu(){
       <div class="unit">
         <h2>${u.title}</h2>
         <div class="utitle">Юнит · ${unitCompleted(u)?'✅ пройдено':'продолжай'}</div>
+        ${unitCompleted(u)?`<div class="unittest">
+          <button class="primary" style="margin-bottom:12px" onclick="startUnitTest('${u.id}')">🎯 Тест юнита</button>
+        </div>`:''}
         ${u.lessons.map(l=>{
           const num=lessonNumber(l.id);
           const locked=!isUnlocked(l.id);
@@ -702,6 +716,17 @@ function startLesson(id){
   LS={ lesson:l, queue:qList, idx:0, wrong:[], correct:0, sel:null, matchSel:null, matchPairs:[], inp:null };
   showQuestion();
 }
+// Тест юнита: перемешиваем все задания всех уроков юнита в один тест
+function startUnitTest(unitId){
+  const u=UNITS.find(x=>x.id===unitId);
+  if(!u) return;
+  const allQ=[];
+  u.lessons.forEach(l=>{ DATA.completed[l.id] && l.q.forEach(q=>allQ.push(q)); });
+  if(!allQ.length){ renderMenu(); return; }
+  const qList=shuffle(allQ);
+  LS={ lesson:{id:unitId, name:u.title+' · Тест', q:qList, xp:15}, queue:qList, idx:0, wrong:[], correct:0, sel:null, matchSel:null, matchPairs:[], inp:null, isUnitTest:true };
+  showQuestion();
+}
 function showQuestion(){
   const total=LS.queue.length;
   if(LS.idx>=total){
@@ -715,7 +740,7 @@ function showQuestion(){
     } else { finishLesson(); return; }
   }
   const q=LS.queue[LS.idx];
-  LS.sel=null; LS.matchSel=null; LS.matchPairs=[]; LS.inp=null;
+  LS.sel=null; LS.matchSel=null; LS.matchPairs=[]; LS.inp=null; LS.buildPool=[]; LS.buildCur=[];
   const prog=Math.round(LS.idx/total*100);
   let body='';
   if(q.t==='choice'){
@@ -749,6 +774,18 @@ function showQuestion(){
     body=`<div class="qcard"><div class="qprompt">${q.p}</div></div>
     <div class="match-tile">
       ${LS.matchPairs.map((p,i)=>`<div class="mtile" data-i="${i}" onclick="pickMatch(${i})"><span>${p.v}</span><span style="display:flex;gap:6px;align-items:center">${isLatin(p.v)?`<button class="speakbtn" style="padding:3px 8px;margin:0" ${speakHtmlAttr(p.v)}>🔊</button>`:''}<span class="ch">${p.matched?'✓':''}</span></span></div>`).join('')}
+    </div>`;
+  } else if(q.t==='build'){
+    // сборка предложения из слов: q.words (правильный порядок), q.a — итог для проверки
+    const words=shuffle(q.a.split(/\s+/).filter(Boolean));
+    LS.buildPool=words.map((w,i)=>({w, idx:i, used:false}));
+    LS.buildCur=[];
+    body=`<div class="qcard">
+      <div class="qprompt">${q.p}</div>
+      <div class="buildbar" id="buildbar" onclick="return false"></div>
+    </div>
+    <div class="buildpool" id="buildpool">
+      ${words.map((w,i)=>`<button class="bword" data-i="${i}" onclick="pickBuild(${i})">${w}</button>`).join('')}
     </div>`;
   }
   render(`<div class="topbar"><button class="back" onclick="leaveLesson()">✕</button><h2>${LS.lesson.name}${LS.reviewing?' · повтор':''}</h2><span>${LS.idx+1}/${LS.queue.length}</span></div>
@@ -817,11 +854,40 @@ function pickMatch(i){
 function checkMatch(){
   // автоматически отмечается по мере сопоставления
 }
+// ===== Задание "построй предложение" (build) =====
+function pickBuild(i){
+  const q=LS.queue[LS.idx];
+  const item=LS.buildPool.find(x=>x.idx===i);
+  if(!item||item.used) return;
+  item.used=true;
+  LS.buildCur.push(item.w);
+  const btn=document.querySelector(`.buildpool .bword[data-i="${i}"]`);
+  if(btn){ btn.classList.add('used'); btn.disabled=true; }
+  document.getElementById('buildbar').innerHTML=`<span class="bword2">${LS.buildCur.map((w,j)=>`<span class="bchip" onclick="unbuild(${j})">${w} ✕</span>`).join('')}</span>`;
+  if(LS.buildCur.length>=q.a.split(/\s+/).filter(Boolean).length){
+    // все слова использованы
+    renderActionsCheck();
+  } else {
+    document.getElementById('actionsArea').innerHTML='';
+  }
+}
+function unbuild(j){
+  const w=LS.buildCur[j];
+  LS.buildCur.splice(j,1);
+  // возвращаем слово обратно в пул
+  const item=LS.buildPool.find(x=>x.w===w && x.used);
+  if(item) item.used=false;
+  const btns=document.querySelectorAll('.buildpool .bword');
+  btns.forEach(b=>{ if(b.textContent===w){ b.classList.remove('used'); b.disabled=false; } });
+  document.getElementById('buildbar').innerHTML=`<span class="bword2">${LS.buildCur.map((w2,j2)=>`<span class="bchip" onclick="unbuild(${j2})">${w2} ✕</span>`).join('')}</span>`;
+  document.getElementById('actionsArea').innerHTML='';
+}
 function checkAnswer(){
   const q=LS.queue[LS.idx];
   let user='';
   if(q.t==='choice') user=LS.sel||'';
   else if(q.t==='type'||q.t==='gap') user=(document.getElementById('fillin').value||'').trim().toLowerCase();
+  else if(q.t==='build') user=LS.buildCur.join(' ').trim().toLowerCase();
   const answer=String(q.a||'').toLowerCase();
   let ok=false;
   if(q.t==='choice'){
@@ -874,6 +940,10 @@ function correctNow(){
     const inp=document.getElementById('fillin'); if(inp){ inp.disabled=true; inp.style.border='2px solid var(--green)'; }
   } else if(q.t==='match'){
     // уже сопоставлено
+  } else if(q.t==='build'){
+    // подсветить правильную сборку в баре
+    const bar=document.getElementById('buildbar');
+    if(bar) bar.innerHTML=`<span class="bword2" style="color:var(--green)">${q.a.split(/\s+/).map(w=>`<span class="bchip ok-build">${w}</span>`).join(' ')}</span>`;
   }
   save();
   renderActionsNext();
@@ -886,6 +956,14 @@ function leaveLesson(){
 }
 function finishLesson(){
   const l=LS.lesson;
+  if(LS.isUnitTest){
+    // тест юнита даёт XP, но не отмечает уроки как пройденные
+    DATA.xp+=l.xp;
+    logActivity(0, l.xp);
+    save();
+    showComplete(l.xp, l.name);
+    return;
+  }
   DATA.completed[l.id]=true;
   DATA.stars[l.id]=3;
   DATA.xp+=l.xp;
