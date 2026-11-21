@@ -11,6 +11,7 @@ window.__uniContent = [
         {t:'type', p:'Напиши «пожалуйста» по-французски', a:"s'il vous plaît", aliases:["sil vous plait","s'il vous plait"]},
         {t:'gap', p:'Продолжи фразу: «Учиться» = …', text:'Je veux apprendre le ___.', word:'français', hint:'язык Франции'},
         {t:'match', p:'Соедини пары', pairs:[['bonjour','привет'],['merci','спасибо'],['oui','да'],['non','нет']]},
+        {t:'listen', p:'Что ты услышал?', word:'bonjour', a:'привет', o:['привет','спасибо','да','до свидания']},
         {t:'build', p:'Собери предложение: «Я хочу говорить по-французски»', a:'Je veux parler français'}
       ]},
       { id:'l2', name:'Знакомство', icon:'🤝', xp:10, q:[
@@ -52,6 +53,7 @@ window.__uniContent = [
       ]},
       { id:'l6', name:'В кафе', icon:'🍽', xp:15, q:[
         {t:'choice', p:'«Je voudrais…» значит…', a:'я хотел бы…', o:['я хотел бы…','я знаю…','я имею…','я вижу…']},
+        {t:'listen', p:'Что ты услышал?', word:'café', a:'кофе', o:['кофе','чай','вода','вино']},
         {t:'type', p:'Переведи «мясо»', a:'viande'},
         {t:'type', p:'Переведи «рыба»', a:'poisson'},
         {t:'gap', p:'Вставь', text:"S'il vous plaît, l'___.", word:'addition', hint:'счёт'},
@@ -145,6 +147,7 @@ window.__uniContent = [
         {t:'type', p:'Переведи «один»', a:'un'},
         {t:'type', p:'Переведи «два»', a:'deux'},
         {t:'choice', p:'«Trois» — это…', a:'три', o:['три','два','пять','четыре']},
+        {t:'type', rev:true, p:'Что значит «cinq»? Напиши по-русски', q:'cinq', a:'пять'},
         {t:'choice', p:'«Cinq» — это…', a:'пять', o:['пять','шесть','семь','четыре']},
         {t:'match', p:'Соедини', pairs:[['un','один'],['deux','два'],['trois','три'],['quatre','четыре'],['cinq','пять']]}
       ]},
@@ -213,6 +216,7 @@ window.__uniContent = [
         {t:'type', p:'Переведи «врач»', a:'médecin'},
         {t:'type', p:'Переведи «учитель»', a:'professeur'},
         {t:'choice', p:'«Infirmière» — это…', a:'медсестра', o:['медсестра','врач','учитель','инженер']},
+        {t:'listen', p:'Что ты услышал?', word:'médecin', a:'врач', o:['врач','учитель','инженер','продавец']},
         {t:'match', p:'Соедини', pairs:[['médecin','врач'],['professeur','учитель'],['ingénieur','инженер'],['commerçant','продавец']]}
       ]},
       { id:'l26', name:'Работа', icon:'💼', xp:10, q:[

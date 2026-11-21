@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#1b120c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Français">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>Французский 🇫🇷</title>
 <style>
   @keyframes fadeUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
@@ -116,6 +120,8 @@
   .wordlist .w:last-child{border-bottom:none;}
   .wordlist .fr{font-weight:700;}
   .wordlist .ru{color:var(--sub); font-size:13px;}
+  .revbadge{font-size:11px; background:rgba(232,133,61,.18); color:#f2b04c; padding:2px 7px; border-radius:999px; font-weight:700;}
+  .revdue{font-size:11px; background:rgba(63,174,106,.2); color:#3fae6a; padding:2px 7px; border-radius:999px; font-weight:700;}
   .stat{display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:15px;}
   .stat:last-child{border-bottom:none;}
   .stat b{color:var(--accent2);}
@@ -271,41 +277,43 @@ function getAudioEl(){
 function audioUrl(word){
   return 'audio/'+encodeURIComponent(word)+'.mp3';
 }
-function speak(text){
+function speak(text, slow){
   if(!text) return;
   try{
     const word=String(text).trim().toLowerCase();
     const el=getAudioEl();
     // проверяем, есть ли файл: пробуем проиграть, при ошибке — тихо
     el.src=audioUrl(word);
+    el.playbackRate = slow ? 0.7 : 1;
     const p=el.play();
-    if(p && p.catch){ p.catch(()=>{ /* файла нет — пробуем системную озвучку */ speechFallback(text); }); }
+    if(p && p.catch){ p.catch(()=>{ /* файла нет — пробуем системную озвучку */ speechFallback(text, slow); }); }
   }catch(e){
-    speechFallback(text);
+    speechFallback(text, slow);
   }
 }
 // Запасной вариант для фраз, которых нет в наборе MP3 (системная речь if доступна)
-function speechFallback(text){
+function speechFallback(text, slow){
   try{
     if(!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
-    u.lang='fr-FR'; u.rate=0.92;
+    u.lang='fr-FR'; u.rate = slow ? 0.7 : 0.92;
     const voices=window.speechSynthesis.getVoices();
     const fr=voices.find(v=>v.lang.toLowerCase().startsWith('fr'));
     if(fr) u.voice=fr;
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
-function speakHtmlAttr(text){
-  return `onclick="event.stopPropagation();speak(${JSON.stringify(text)})"`;
+function speakHtmlAttr(text, slow){
+  return `onclick="event.stopPropagation();speak(${JSON.stringify(text)}${slow?',true':''})"`;
 }
 // возвращает французское слово для озвучки после ответа
 function answerTextToSpeak(q){
   if(!q) return null;
   const latin=/^[a-zA-ZàâçéèêëîïôùûüœÇÊ''-]+( [a-zA-ZàâçéèêëîïôùûüœÇÊ''-]+)*$/;
   if(q.t==='type'||q.t==='gap'){
-    const w=q.word||q.a;
+    // при обратном переводе (rev) озвучиваем французское слово q.q, ответ — русский
+    const w=q.word||(q.rev?q.q:q.a);
     if(typeof w==='string' && latin.test(w.trim())) return w.trim();
   } else if(q.t==='choice'){
     if(q.q && latin.test(q.q.trim())) return q.q.trim();
@@ -388,7 +396,8 @@ const TOOLS = [
   {id:'review', name:'Повторить сложное', icon:'🔄', desc:'Smart-повторение слов', fn:'startReview'},
   {id:'dict', name:'Словарь', icon:'📚', desc:'все слова', fn:'renderDict'},
   {id:'conj', name:'Спряжения', icon:'🔤', desc:'глаголы', fn:'renderConj'},
-  {id:'dial', name:'Фразы', icon:'💬', desc:'диалоги', fn:'renderDial'}
+  {id:'dial', name:'Фразы', icon:'💬', desc:'диалоги', fn:'renderDial'},
+  {id:'listenmode', name:'Слушать', icon:'🎧', desc:'режим слушателя', fn:'listenMode'}
 ];
 
 function conjugate(v){
@@ -531,6 +540,9 @@ function startLesson(id){
   // перемешиваем порядок заданий, чтобы урок каждый раз шёл по-разному
   const qList=shuffle(l.q.slice());
   LS={ lesson:l, queue:qList, idx:0, wrong:[], correct:0, sel:null, matchSel:null, matchPairs:[], inp:null };
+  // подмешиваем до 3 слов из SM-2-повтора, которым пора появиться в уроке
+  const due=wordsDueNow().filter(x=>!l.q.some(q=>String(q.q||q.a||'').toLowerCase()===x.word.toLowerCase())).slice(0,3);
+  due.forEach(x=>LS.queue.splice(2+Math.floor(Math.random()*2), 0, {t:'type', rev:true, p:'Закрепи слово:', q:x.word, a:x.ru}));
   showQuestion();
 }
 // Тест юнита: перемешиваем все задания всех уроков юнита в один тест
@@ -573,6 +585,7 @@ function showQuestion(){
       <div class="qprompt">${q.p}</div>
       <div class="qtext">${q.q}</div>
       <button class="speakbtn" ${speakHtmlAttr(q.q)}>🔊 Слушать</button>
+      <button class="speakbtn" ${speakHtmlAttr(q.q,true)}>🐢 медленно</button>
       ${q.hint?`<div class="qhint">💡 ${q.hint}</div>`:''}
     </div>
     <input type="text" class="fillin" id="fillin" placeholder="Напиши ответ…" aria-label="Введи ответ по-французски" autocomplete="off" autocapitalize="off" autocorrect="off">`;
@@ -816,9 +829,10 @@ function renderConfetti(){
 // ===== Инструменты =====
 function renderDict(){
   const words=collectWords();
+  const t0=todayStr();
   render(`<div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>📚 Словарь</h2></div>
   <div class="card"><div class="wordlist">
-    ${words.map(w=>`<div class="w"><div><span class="fr">${w.fr}</span> <span class="ru">— ${w.ru}</span></div><div style="display:flex;gap:8px;align-items:center"><span style="font-size:12px;color:var(--sub)">${w.tr}</span><button class="speakbtn" style="padding:4px 10px;margin:0" aria-label="Озвучить ${w.fr}" ${speakHtmlAttr(w.fr)}>🔊</button></div></div>`).join('')}
+    ${words.map(w=>`<div class="w"><div><span class="fr">${w.fr}</span> <span class="ru">— ${w.ru}</span></div><div style="display:flex;gap:8px;align-items:center"><span style="font-size:12px;color:var(--sub)">${w.tr}</span>${w.box!=null?`<span class="revbadge" title="Уровень умного повторения">банк ${w.box}</span>`:''}${w.due&&w.due<=t0?`<span class="revdue">⚡ повторить</span>`:''}<button class="speakbtn" style="padding:4px 10px;margin:0" aria-label="Озвучить ${w.fr}" ${speakHtmlAttr(w.fr)}>🔊</button></div></div>`).join('')}
   </div></div>`);
 }
 function collectWords(){
@@ -828,6 +842,12 @@ function collectWords(){
     if(q.t==='type') list.push([q.q,q.a]);
     else if(q.t==='match') q.pairs.forEach(p=>{ out.push({fr:p[0],ru:p[1],tr:''}); });
   })));
+  // прикрепляем статус умного повторения к каждому слову
+  dedupe(out).forEach(w=>{
+    const m=DATA.review[String(w.fr).toLowerCase()];
+    w.box=m?m.box:null;
+    w.due=m?m.due:null;
+  });
   return dedupe(out);
 }
 function dedupe(a){ const m={}; const r=[]; a.forEach(x=>{ if(!m[x.fr]){m[x.fr]=1;r.push(x);} }); return r; }
@@ -864,6 +884,19 @@ function renderProgressScreen(){
   }).join('');
   // словарь частотности ошибок (топ)
   const errList=Object.entries(DATA.wordErrors||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  // кривая забывания: слова по банкам SM-2 и сколько пора повторить
+  const t0=todayStr();
+  let dueCount=0; const bankCount={0:0,1:0,2:0,3:0,4:0};
+  Object.values(DATA.review||{}).forEach(m=>{
+    const box=m.box||0; bankCount[box]=(bankCount[box]||0)+1;
+    if(m.due && m.due<=t0 && (m.errs||0)>=0) dueCount++;
+    // считаем просроченными те, у которых due уже прошёл
+  });
+  const doneInReview=Object.keys(DATA.review||{}).length;
+  // недельные показатели для отчёта
+  const weekDone=week.reduce((s,d)=>s+(d.rec.done||0),0);
+  const weekXp=week.reduce((s,d)=>s+(d.rec.xp||0),0);
+  const weekActive=week.filter(d=>d.rec.done>0).length;
   render(`
     <div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>📈 Прогресс</h2></div>
     <div class="card">
@@ -888,6 +921,22 @@ function renderProgressScreen(){
         ${errList.map(([k,v])=>`<div class="w"><div><span class="fr">${k}</span></div><span class="b">ошибок: ${v}</span></div>`).join('')}
       </div>
     </div>`:'<div class="card"><h2>Сложные слова</h2><div class="ok" style="margin:0">🎉 Пока нет сложных слов — так держать!</div></div>'}
+    <div class="card">
+      <h2>🧠 Кривая забывания</h2>
+      <div class="sub">${dueCount} слов пора повторить · ${doneInReview} в закреплении</div>
+      <div class="row" style="margin-top:8px">
+        ${[0,1,2,3,4].map(b=>`<button class="secondary" style="flex:1;font-size:13px" title="Уровень ${b}">Банк ${b}<br><b>${bankCount[b]||0}</b></button>`).join('')}
+      </div>
+      <div class="sub" style="margin-top:8px">банк растёт: чем выше, тем реже показываем слово</div>
+    </div>
+    <div class="card">
+      <h2>📅 Недельный отчёт</h2>
+      <div class="stat"><span>Слов повторено</span><b>${dueCount}</b></div>
+      <div class="stat"><span>Ответов за 7 дней</span><b>${weekDone}</b></div>
+      <div class="stat"><span>Опыта за 7 дней</span><b>${weekXp} XP</b></div>
+      <div class="stat"><span>Активных дней</span><b>${weekActive}</b></div>
+      <div class="sub" style="margin-top:8px">${dueCount>0?`⚡ Пора повторить ${dueCount} слов — открой «Повторить сложное».`:'🎉 Нет просроченных слов для повтора.'}</div>
+    </div>
   `);
 }
 
@@ -925,10 +974,12 @@ function renderMotivation(){
     </div>
     <div class="card">
       <h2>💾 Данные</h2>
-      <div class="sub">Выгрузи прогресс в файл или начни заново</div>
+      <div class="sub">Выгрузи, восстанови прогресс или начни заново</div>
       <div class="row">
         <button class="secondary" onclick="exportData()">⬇️ Выгрузить</button>
+        <button class="secondary" onclick="document.getElementById('fileImp').click()">📥 Загрузить</button>
         <button class="secondary" onclick="resetData()">🗑️ Сбросить</button>
+        <input type="file" id="fileImp" accept="application/json,.json" style="display:none" onchange="importData(event)">
       </div>
     </div>
   `);
@@ -946,6 +997,24 @@ function exportData(){
   a.download='french-progress-'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a); a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
+}
+function importData(ev){
+  const file=ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const obj=JSON.parse(reader.result);
+      if(typeof obj!=='object' || obj===null) throw new Error('bad');
+      // восстанавливаем знакомые ключи, остальное сохраняем как есть
+      const merged=Object.assign({}, DATA, obj);
+      DATA=merged;
+      save(); applyTheme(); renderMenu();
+      alert('✅ Прогресс загружен');
+    }catch(e){ alert('❌ Не удалось прочитать файл: не похоже на бэкап'); }
+    ev.target.value='';
+  };
+  reader.readAsText(file);
 }
 function resetData(){
   if(!confirm('Сбросить весь прогресс? Это действие нельзя отменить.')) return;
@@ -967,6 +1036,29 @@ function renderConj(){
 function showConj(v){ const r=conjugate(v); document.getElementById('conjout').innerHTML=`<div class="card center"><div class="big">${v}</div><div class="sub">${r}</div></div>`; }
 function conjInput(){ const v=document.getElementById('conjin').value; const r=conjugate(v); if(!r){document.getElementById('conjout').innerHTML='<div class="banner">Не распознал глагол</div>'; return;} showConj(v); }
 
+function listenMode(){
+  const words=collectWords().slice(0,12);
+  let i=0;
+  window.__listenGo=function(n){ i=Math.max(0,Math.min(words.length-1,n)); paint(); };
+  const paint=()=>{
+    const w=words[i];
+    render(`<div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>🎧 Режим слушателя</h2><span>${i+1}/${words.length}</span></div>
+      <div class="card center">
+        <div class="big" style="font-size:52px">${w.fr}</div>
+        <div class="sub" style="font-size:18px;margin-top:6px">${w.ru}</div>
+        <div class="row" style="margin-top:18px;justify-content:center">
+          <button class="speakbtn" style="font-size:16px;padding:12px 20px" ${speakHtmlAttr(w.fr)}>🔊 Слушать</button>
+          <button class="speakbtn" style="font-size:16px;padding:12px 20px" ${speakHtmlAttr(w.fr,true)}>🐢 медленно</button>
+        </div>
+        <div class="row" style="margin-top:18px;justify-content:center">
+          ${i>0?`<button class="secondary" onclick="__listenGo(${i-1})">← назад</button>`:''}
+          ${i<words.length-1?`<button class="primary" onclick="__listenGo(${i+1})">дальше →</button>`:'<button class="primary" onclick="renderMenu()">✓ Готово</button>'}
+        </div>
+      </div>`);
+    speak(w.fr);
+  };
+  paint();
+}
 function renderDial(){
   render(`<div class="topbar"><button class="back" onclick="renderMenu()">←</button><h2>💬 Фразы</h2></div>
   <div class="card">
