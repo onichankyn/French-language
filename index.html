@@ -981,6 +981,10 @@ function renderMotivation(){
         <button class="secondary" onclick="resetData()">🗑️ Сбросить</button>
         <input type="file" id="fileImp" accept="application/json,.json" style="display:none" onchange="importData(event)">
       </div>
+      <div class="row" style="margin-top:10px">
+        <button class="secondary" onclick="downloadAllAudio()">📦 Скачать все звуки</button>
+        <span id="dlStatus" style="font-size:12px;color:var(--sub);align-self:center"></span>
+      </div>
     </div>
   `);
 }
@@ -1015,6 +1019,35 @@ function importData(ev){
     ev.target.value='';
   };
   reader.readAsText(file);
+}
+// Офлайн-режим: скачиваем все MP3 в кэш SW (для работы в метро/без сети)
+let _dlRunning=false;
+async function downloadAllAudio(){
+  if(_dlRunning) return;
+  _dlRunning=true;
+  const st=document.getElementById('dlStatus');
+  try{
+    const words=collectWords();
+    const urls=[];
+    words.forEach(w=>{ const fr=String(w.fr).toLowerCase(); urls.push('audio/'+encodeURIComponent(fr)+'.mp3'); });
+    // уникальные urls
+    const uniq=[...new Set(urls)];
+    const cache=await caches.open('french-v3');
+    let ok=0;
+    st.textContent=`0/${uniq.length}…`;
+    for(let i=0;i<uniq.length;i++){
+      try{
+        const url=uniq[i];
+        const resp=await fetch(url, {cache:'force-cache'});
+        if(resp.ok){ await cache.put(url, resp); ok++; }
+      }catch(e){}
+      if((i+1)%10===0 || i===uniq.length-1){ st.textContent=`${ok}/${uniq.length}…`; }
+    }
+    st.textContent=`Готово: ${ok} звуков офлайн ✅`;
+  }catch(e){
+    st.textContent='Не удалось скачать звуки';
+  }
+  _dlRunning=false;
 }
 function resetData(){
   if(!confirm('Сбросить весь прогресс? Это действие нельзя отменить.')) return;
